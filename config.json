@@ -1,0 +1,7 @@
+{
+	"database_url" : "",
+	"jwksUri" : "",
+	"audience" : "",
+	"issuer" : "",
+	"is_jwk" : "false"
+}
