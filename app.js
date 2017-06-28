@@ -116,10 +116,7 @@ var DB = {
 			    			}
 			    		}
 			    	}
-					for (var key in json){	
-						console.log(key);
-						console.log(json[key])	
-						console.log(id)			
+					for (var key in json){			
 						var tableMeta = new AWS.DynamoDB.DocumentClient();
 						var metaParams = {
 						    TableName:"reach-meta",
@@ -131,7 +128,6 @@ var DB = {
 						    }
 						};
 						tableMeta.put(metaParams, function(err, data) {
-							console.log(data)
 						});
 					}	
 			    })		    	
@@ -251,8 +247,26 @@ var DB = {
 					}
 				});
 			};
-			this.update = function(){
-				return {method: "update", first_name: "Rex", last_name: "Fong"};				
+			this.update = function(id, json){	
+				var keys = [];
+				for (key in json){
+					keys.push(key);
+				}
+				Meta.find({"data_id": id}, function(err, datas){
+					_.each(datas, function(data){
+			   			if(_.includes(keys, data.key)){
+			   				Meta.remove({_id: data._id}, function(err, response){		
+			   				})
+						}
+					});
+					for (var key in json){
+	   					new Meta({
+							key : key,
+							value : json[key],
+							data_id: id
+						}).save();	
+					}
+				})
 			}
 			this.readAll = function(type, callback){
 				Data.find({"type": type}, function(err, data){
@@ -568,33 +582,7 @@ app.post('/api/v1/:type', function(req, res){
 })
 app.post('/api/v1/:type/:id', function(req,res){
 	dbQuery.update(req.params.id, req.query);
-	res.status(200).end();
-	// for (var key in req.body){
-	// 	new Meta({
-	// 		key : key,
-	// 		value : req.body[key],
-	// 		data_id : req.params.id
-	// 	}).save();
-	// }	
-});
-app.put('/api/v1/:type/:id', function(req, res) {
-	Meta.find({data_id: req.params.id}, function(err, meta){
-		var obj = new Object();
-		for (key in req.body){
-			obj[key] = req.body[key]
-		}
-		for (var i = 0; i < meta.length; i++) {
-			if (obj[meta[i].key] !== undefined) {
-				meta[i].value = obj[meta[i].key];
-			}
-		}
-		for (var i = 0; i < meta.length; i++) {
-			var m = new Meta(meta[i]);
-			m.isNew = false;
-			m.save();
-		}
-		res.status(200).send(meta);
-	})
+	res.status(200).end();	
 });
 app.delete('/api/v1/session/:id', function(req,res){
 	//delete session by ssid
