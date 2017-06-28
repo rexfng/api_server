@@ -20,8 +20,6 @@ const assert = require('assert-callback');
 const mustache = require('mustache');
 const logger = require('morgan');
 const _ = require('lodash');
-const OpenTok = require('opentok'),
-	  opentok = new OpenTok('45880412', 'df80c4fe2dd96213a23dc5b10437982865b40d56');
 const Meta = require('./db').model.Meta;
 const Data = require('./db').model.Data;
 const mongoose = require('./db').model.mongoose;
@@ -31,18 +29,18 @@ const jwtCheck = jwt({
         cache: true,
         rateLimit: true,
         jwksRequestsPerMinute: 5,
-        jwksUri: process.env.jwksUri || config.jwksUri
+        jwksUri: process.env.jwksUri || config.app.jwk.jwksUri
     }),
-    audience: process.env.audience || config.audience,
-    issuer: process.env.issuer || config.issuer,
+    audience: process.env.audience || config.app.jwk.audience,
+    issuer: process.env.issuer || config.app.jwk.issuer,
     algorithms: ['RS256']
-}), is_jwk = process.env.is_jwk || config.is_jwk;
+}), is_jwk = process.env.is_jwk || config.app.jwk.is_jwk;
 const AWS = require("aws-sdk");
       AWS.config.update({
-          accessKeyId: process.env.aws_accessKeyId || config.aws_accessKeyId, 
-          secretAccessKey: process.env.aws_secretAccessKey || config.aws_secretAccessKey,
-          region: process.env.aws_dynamodb_region || config.aws_dynamodb_region,
-          endpoint: config.root_rul
+          accessKeyId: process.env.aws_accessKeyId || config.api.aws.aws_accessKeyId, 
+          secretAccessKey: process.env.aws_secretAccessKey || config.api.aws.aws_secretAccessKey,
+          region: process.env.aws_dynamodb_region || config.db.dynamodb.aws_dynamodb_region,
+          endpoint: config.app.root_url
       });
 
 app.use('/', express.static('doc'));
@@ -319,9 +317,9 @@ var DB = {
 	}
 }
 
-if (config.which_DB == "mongodb") {
+if (config.db.which_DB == "mongodb") {
 	var dbQuery = new DB.query.mongodb;
-}else if (config.which_DB == "dynamodb") {
+}else if (config.db.which_DB == "dynamodb") {
     var dbQuery = new DB.query.dynamodb;
 }
 	// dbQuery.readAll("chat", callback());
@@ -452,13 +450,13 @@ app.post('/api/v1/mailer', function(req, res){
 	let transporter = nodemailer.createTransport({
 	    service: 'gmail',
 	    auth: {
-	        user: process.env.mailer_user || config.mailer_user,
-	        pass: process.env.mailer_pass || config.mailer_pass
+	        user: process.env.mailer_user || config.api.mailer.mailer_user,
+	        pass: process.env.mailer_pass || config.api.mailer.mailer_pass
 	    }
 	});
 	// setup email data with unicode symbols
 	let mailOptions = {
-	    from: process.env.mailer_user || config.mailer_user, // sender address
+	    from: process.env.mailer_user || config.api.mailer.mailer_user, // sender address
 	    to: req.body.to, // list of receivers
 	    subject: req.body.subject, // Subject line
 	    text: req.body.text, // plain text body
@@ -475,14 +473,14 @@ app.post('/api/v1/mailer', function(req, res){
 })
 app.post('/api/v1/sms', function(req, res){
 	var client = new twilio(
-		process.env.twilio_accountSid || config.twilio_accountSid, 
-		process.env.twilio_authToken || config.twilio_authToken
+		process.env.twilio_accountSid || config.api.twilio.twilio_accountSid, 
+		process.env.twilio_authToken || config.api.twilio.twilio_authToken
 	);
 
 	client.messages.create({
 	    body: req.body.body,
 	    to: req.body.number,  // Text this number
-	    from: process.env.twilio_number || config.twilio_number // From a valid Twilio number
+	    from: process.env.twilio_number || config.api.twilio.twilio_number // From a valid Twilio number
 	})
 	.then((message) => console.log(message.sid));
 })
@@ -532,7 +530,7 @@ app.post('/api/v1/auth', function(req, res){
 											'ssid': uid, 
 											'user': JSON.stringify({
 												'id': user_id,
-												'_self': config.root_url + '/api/v1' + '/user/' + user_id 
+												'_self': config.app.root_url + '/api/v1' + '/user/' + user_id 
 											}),
 											'ip_address': req.ip,
 											'useragent': JSON.stringify(req.useragent),
