@@ -20,5 +20,6 @@ var Data = mongoose.model("Data", DataSchema );
 var Meta = mongoose.model("Meta", MetaSchema);
 
 exports.model = {};
+exports.model.mongoose = mongoose;
 exports.model.Data = Data;
 exports.model.Meta = Meta;

@@ -1,7 +1,0 @@
-{
-  "name": "Church of God API",
-  "version": "1.0.0",
-  "description": "The documentation contains the api guide for all backend requests, which including five major services. The user service, the sermon service, the hymns service, the attendance service and the chat service",
-  "title": "API Documentation for COGHK",
-  "url" : "https://churchofgodinhk.org"
-}

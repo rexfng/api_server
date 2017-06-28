@@ -1,7 +1,17 @@
 {
-	"database_url" : "",
-	"jwksUri" : "",
-	"audience" : "",
-	"issuer" : "",
-	"is_jwk" : "false"
+	"database_url" : "mongodb://root:root@ds133321.mlab.com:33321/sermon",
+	"jwksUri" : "https://rexfng.auth0.com/.well-known/jwks.json",
+	"audience" : "http://localhost:3000/api",
+	"issuer" : "https://rexfng.auth0.com/",
+	"is_jwk" : "false",
+	"mailer_user" : "rexfng@gmail.com",
+	"mailer_pass" : "Ab46709394",
+	"twilio_accountSid" : "ACd7895d188f1aaa6c29f3d413abe90c2e",
+	"twilio_authToken" : "de06500fa93a71037d34f1857533a37f",
+	"twilio_number" : "+17786546655",
+	"aws_dynamodb_region" : "us-west-2",
+	"aws_accessKeyId" : "AKIAJFDHSMRFOA2BCP2Q",
+	"aws_secretAccessKey" : "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",
+	"root_url": "http://localhost:3000",
+	"which_DB" : "mongodb"
 }
