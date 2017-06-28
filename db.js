@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const config = require('./config');
-mongoose.connect(config.database_url);
+mongoose.connect(config.db.mongodb.database_url);
 const connection = mongoose.connection;
 const Schema = mongoose.Schema;
 

@@ -25,7 +25,7 @@
 		"twilio":{
 			"twilio_accountSid" : "ASDFASDFASDFASDFASDFASDFASDFASDFAS",
 			"twilio_authToken" : "ASDFADSFASDFASDFASDFASDF",
-			"twilio_number" : "+17781234567",
+			"twilio_number" : "+17781234567"
 		},
 		"mailer":{
 			"mailer_user" : "example@gmail.com",
