@@ -2,7 +2,7 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 if (process.env.NODE_ENV == 'development') {
 	const config = require('./env/' + process.env.NODE_ENV);
 }else{
-	const config = null;
+	const config = require('./env/_config');
 }
 const express = require('express'),
 	  device = require('express-device'),
