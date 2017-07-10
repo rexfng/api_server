@@ -7,22 +7,25 @@ const bodyParser = require('body-parser'),
 const server = app.listen(3000, function(){
 	console.log('listening on port %s', server.address().port);
 });	
-const config = require('./config');
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+const config = require('./env/' + process.env.NODE_ENV);
 const nodemailer = require('nodemailer');
 const twilio = require('twilio');
 const io = require('socket.io')(server);
 const uid = require('uid-safe')
-const ObjectID = require("bson-objectid");
 const jwt = require('express-jwt');
 const jwks = require('jwks-rsa');
 const crypto = require("crypto");
 const assert = require('assert-callback');
 const logger = require('morgan');
 const _ = require('lodash');
+const DB = require('./db').DB;
 
-const Meta = require('./db').model.Meta;
-const Data = require('./db').model.Data;
-const mongoose = require('./db').model.mongoose;
+	// dbQuery.readAll("chat", callback());
+	// dbQuery.update("WVFPDgS7HcPCF4WRAAAC", {first_name: "John", last_name: "Wall"});
+	// dbQuery.create(req.params.type, {title: "The World's Greatest Book", content: "jakdpfoaiofj alif ialsjfliasjfsfj."});
+	// dbQuery.readOne("WU72WAXyLcPCF3czAAAC",callback());
+	// dbQuery.delete(req.params.id, callback);
 
 const jwtCheck = jwt({
 	//https://devcenter.heroku.com/articles/config-vars
@@ -36,13 +39,6 @@ const jwtCheck = jwt({
     issuer: process.env.issuer || config.app.jwk.issuer,
     algorithms: ['RS256']
 }), is_jwk = process.env.is_jwk || config.app.jwk.is_jwk;
-const AWS = require("aws-sdk");
-      AWS.config.update({
-          accessKeyId: process.env.aws_accessKeyId || config.api.aws.aws_accessKeyId, 
-          secretAccessKey: process.env.aws_secretAccessKey || config.api.aws.aws_secretAccessKey,
-          region: process.env.aws_dynamodb_region || config.db.dynamodb.aws_dynamodb_region,
-          endpoint: config.app.root_url
-      });
 
 app.use('/', express.static('doc'));
 app.use(device.capture({parseUserAgent: true}));
@@ -55,280 +51,11 @@ if (is_jwk == 'true') {
 }else{
 	console.log('jwkCheck is disable, api endpoint is not secured');
 }
-var DB = {
-	query:{
-		dynamodb: function(){
-			this.create = function(type, json){
-				var tableData = new AWS.DynamoDB.DocumentClient();
-				var dataParams = {
-				    TableName:"reach-data",
-				    Item:{
-						"_id": ObjectID.generate(),
-				        "type": type,
-				    }
-				};
-				tableData.put(dataParams, function(err, data) {
-					console.log(err)
-				    if (!err){
-						for (var key in json){					
-							var tableMeta = new AWS.DynamoDB.DocumentClient();
-							var metaParams = {
-							    TableName:"reach-meta",
-							    Item:{
-							        "_id": ObjectID.generate(),
-							        "data_id": dataParams.Item.id,
-							        "k": key,
-							        "v": json[key]
-							    }
-							};
-							tableMeta.put(metaParams, function(err, data) {
-							});
-						}
-				    }
-				});			
-			};
-			this.update = function(id, json){	
-				var tableMeta = new AWS.DynamoDB.DocumentClient();
-			    var metaParams = {
-			        TableName: "reach-meta",
-			        Key:{
-			            "data_id": id,
-			        }
-			    };
-			    jsonKeys = [];
-			    for (key in json){
-			    	jsonKeys.push(key);
-			    }
-
-			    tableMeta.scan(metaParams, function(err, data){
-			    	for (var i = 0; i < data.Items.length; i++) {
-			    		if( data.Items[i].data_id == id){
-			    			if(_.includes(jsonKeys, data.Items[i].k)){
-								var tableMeta = new AWS.DynamoDB.DocumentClient();
-							    var metaParams = {
-							        TableName: "reach-meta",
-							        Key:{
-							            "id": data.Items[i].id,
-							        }
-							    };
-							    tableMeta.delete(metaParams, function(err, data) {
-							    })
-			    			}
-			    		}
-			    	}
-					for (var key in json){			
-						var tableMeta = new AWS.DynamoDB.DocumentClient();
-						var metaParams = {
-						    TableName:"reach-meta",
-						    Item:{
-						        "_id": ObjectID.generate(),
-						        "data_id": id,
-						        "k": key,
-						        "v": json[key]
-						    }
-						};
-						tableMeta.put(metaParams, function(err, data) {
-						});
-					}	
-			    })		    	
-			}
-			this.readAll = function(type, callback){
-				var tableData = new AWS.DynamoDB.DocumentClient();
-				var params = { TableName: "reach-data" };
-			    tableData.scan(params, function(err, data){
-			    	if (!err) {
-			    		for (var i = 0; i < data.Items.length; i++) {
-			    			if (data.Items[i].type == type) {
-								var tableMeta = new AWS.DynamoDB.DocumentClient();
-			    				var dataIdArr = [];
-			    				var responseArr = [];
-								var metaParams = {
-							        TableName: "reach-meta",
-							    };	
-			    				for (var i = 0; i < data.Items.length; i++) {
-			    					var data_id = data.Items[i].id;
-			    					dataIdArr.push(data_id);
-			    				}
-			    				tableMeta.scan(metaParams, function(err, data){
-			    					_.each(dataIdArr, function(id){
-				    					var row = _.filter(data.Items, { data_id: id });
-				    					var build = {};
-				    					build.id = id;
-				    					_.each(row, function(record){
-				    						build[record.k] = record.v
-				    					})
-				    					responseArr.push(build);
-			    					})
-			    					callback(responseArr);
-			    				})	
-			    			}
-			    		}
-			    	}
-			    })
-			}
-			this.readOne = function(id, callback){
-				var tableData = new AWS.DynamoDB.DocumentClient();
-				var params = { TableName: "reach-data" };
-			    tableData.scan(params, function(err, data){
-			    	if (!err) {
-			    		for (var i = 0; i < data.Items.length; i++) {
-			    			if (data.Items[i].id == id) {
-								var tableMeta = new AWS.DynamoDB.DocumentClient();
-								var type = data.Items[i].type;
-								var metaParams = {
-							        TableName: "reach-meta",
-							        Key:{
-							            "data_id": data.Items[i].id
-							        }
-							    };	
-
-			    				var build = new Object();
-			    				tableMeta.scan(metaParams, function(err, data){
-			    					build.id = metaParams.Key.data_id;
-			    					build.type = type;
-			    					for (var i = 0; i < data.Items.length; i++) {
-			    						if (data.Items[i].data_id == metaParams.Key.data_id) {
-			    							build[data.Items[i].k] = data.Items[i].v			    							
-			    						}
-			    					}
-			    					callback(build);
-			    				})	
-			    			}
-			    		}
-			    	}
-			    })
-			}
-			this.delete = function(id, status){
-				var tableMeta = new AWS.DynamoDB.DocumentClient();
-				var metaParams = {
-			        TableName: "reach-meta",
-			        Key:{
-			            "data_id": id
-			        }
-			    };	
-				tableMeta.scan(metaParams, function(err, data){	
-    				for (var i = 0; i < data.Items.length; i++) {
-    					if (data.Items[i].data_id == id){
-							var tableMeta = new AWS.DynamoDB.DocumentClient();
-						    var metaParams = {
-						        TableName: "reach-meta",
-						        Key:{
-						            "_id": data.Items[i].id,
-						        }
-						    };
-						    tableMeta.delete(metaParams, function(err, data) {
-						    })		    						
-    					}
-    				}
-				})
-				var tableData = new AWS.DynamoDB.DocumentClient();
-			    var dataParams = {
-			        TableName: "reach-data",
-			        Key:{
-			            "_id": id,
-			        }
-			    };
-
-			    tableData.delete(dataParams, function(err, data) {
-			    })
-			}
-		},
-		mongodb: function(){
-			this.create = function(type, json){
-				new Data({
-					type: type
-				}).save(function(err,data){
-					for (var key in json){
-						new Meta({
-							key : key,
-							value : json[key],
-							data_id : data._id
-						}).save();
-					}
-				});
-			};
-			this.update = function(id, json){	
-				var keys = [];
-				for (key in json){
-					keys.push(key);
-				}
-				Meta.find({"data_id": id}, function(err, datas){
-					_.each(datas, function(data){
-			   			if(_.includes(keys, data.key)){
-			   				Meta.remove({_id: data._id}, function(err, response){		
-			   				})
-						}
-					});
-					for (var key in json){
-	   					new Meta({
-							key : key,
-							value : json[key],
-							data_id: id
-						}).save();	
-					}
-				})
-			}
-			this.readAll = function(type, callback){
-				Data.find({"type": type}, function(err, data){
-					var datas = [];
-					var dataIdArr = [];
-					var responseArr = [];
-					for (var i = 0; i < data.length; i++) {
-						dataIdArr.push(data[i]._id)
-					}
-					Meta.find({}, function(err, objs){	
-						_.each(dataIdArr, function(id){
-						    var row = _.filter(objs, { data_id: id });
-							var meta = {};
-							meta._id = id;
-							_.each(row, function(obj){
-								meta[obj.key] = obj.value[0];
-							})
-							responseArr.push(meta);
-						})
-						callback(responseArr);
-					})
-				})
-			}
-			this.readOne = function(id, callback){
-				Data.find({"_id": id}, function(err, data){
-					Meta.find({"data_id" : data[0]._id}, function(err, objs){	
-						var meta = {};
-						meta._id = data[0]._id;
-						_.each(objs, function(obj){
-							meta[obj.key] = obj.value[0];
-						})
-						callback(meta);
-					})
-				})
-			}
-			this.delete = function(id, callback){
-				Data.remove({_id: id}, function(err, response){
-					if (err) {
-						callback({is_deleted: false});
-					}else{
-						Meta.remove({data_id: id}, function(err, response){
-							if (!err) {
-								callback({is_deleted: true});
-							}
-						})
-					}
-				})	
-			}
-		}
-	}
-}
-
 if (config.db.which_DB == "mongodb") {
 	var dbQuery = new DB.query.mongodb;
 }else if (config.db.which_DB == "dynamodb") {
     var dbQuery = new DB.query.dynamodb;
 }
-	// dbQuery.readAll("chat", callback());
-	// dbQuery.update("WVFPDgS7HcPCF4WRAAAC", {first_name: "John", last_name: "Wall"});
-	// dbQuery.create(req.params.type, {title: "The World's Greatest Book", content: "jakdpfoaiofj alif ialsjfliasjfsfj."});
-	// dbQuery.readOne("WU72WAXyLcPCF3czAAAC",callback());
-	// dbQuery.delete(req.params.id, callback);
 
 io.on('connection', function (socket) {			
 	socket.on('emit', function(data){
@@ -337,7 +64,6 @@ io.on('connection', function (socket) {
 			socket.join(data.room);
 			console.log('joined room!');
 		}
-		console.log(data);
 		if (data.method == "broadcast") {
 			io.broadcast.to(data.room).emit(data.on, data.data);
 			console.log("broadcast");
@@ -348,23 +74,7 @@ io.on('connection', function (socket) {
 			console.log(socket);
 		}
 		if (data.is_save) {
-			new Data({
-				type: data.type
-			}).save(function(err,db){
-				for (var key in data.data){
-					var value = "";
-					if (typeof data.data[key] !== 'string') {
-						var value = JSON.stringify(data.data[key]);
-					}else{
-						var value = data.data[key];
-					}
-					new Meta({
-						key : key,
-						value : value,
-						data_id : db._id
-					}).save();
-				}
-			});				
+			dbQuery.create(data.type, data.data);		
 		}
 	})
 	socket.once('disconnect', function(data){
@@ -379,37 +89,16 @@ app.all('/', function(req, res, next) {
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
   next();
 });
-
 app.get('/api/v1/:type', function(req,res){
 	dbQuery.readAll(req.params.type, function(data){
 		res.status(200).send(data);
 	});
-})
-
-app.get('/api/v1/auth/:id', function(req, res){
-	Meta.find({"key":"email", "value": decodeURI(req.params.id)},function(err, response){
-		if (response[0] !== undefined){
-			var user_id = response[0].data_id;
-			Meta.find({"data_id": user_id},function(err, response){
-				for (var i = 0; i < response.length; i++) {
-					if(response[i].key == "salt" ){	
-						res.status(200);
-						res.send({is_salt: true, salt: response[i].value[0]});							
-					}
-				}
-			})	
-		}else{
-			res.status(200);
-			res.send({is_salt: false});
-		}
-	})	
 })
 app.get('/api/v1/:type/:id', function(req,res){
 	dbQuery.readOne(req.params.id, function(data){
 		res.status(200).send(data);				
 	});	
 })
-
 app.post('/api/v1/mailer', function(req, res){
 	// create reusable transporter object using the default SMTP transport
 	let transporter = nodemailer.createTransport({
@@ -428,7 +117,7 @@ app.post('/api/v1/mailer', function(req, res){
 	    html: req.body.html // html body
 	};
 	// send mail with defined transport object
-	transporter.sendMail(mailOptions, (error, info) => {
+	transporter.sendMail(mailOptions, (error, info), function(){
 	    if (error) {
 	        console.log(error);
 	    }else{
@@ -506,17 +195,16 @@ app.post('/api/v1/:type/:id', function(req,res){
 	res.status(200).end();	
 });
 app.delete('/api/v1/session/:id', function(req,res){
-	//delete session by ssid
-	Meta.remove({"key":"ssid", "value": req.params.id}, function(err, response){
-		if (err) {
-			res.status(200);
-			res.send({ssid_destroyed: false});
-		}else{
-			res.status(200);
-			res.clearCookie("ssid");
-			res.send({ssid_destroyed: true});
-		}				
-	})
+	dbQuery.update(req.params.id, 
+		{ 
+			'ssid': '',
+			'ssid_destroyed_timestamp' : new Date().getTime()
+		}
+	);
+	res.status(200);
+	res.clearCookie("ssid");
+	res.send({ssid_destroyed: true});
+
 })
 app.delete('/api/v1/:type/:id', function(req,res){
 	dbQuery.delete(req.params.id, function(status){

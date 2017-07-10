@@ -39,7 +39,7 @@
   },
   "scripts": {
     "test": "mocha ./test",
-    "api": "apidoc -i ./test ./doc"
+    "api": "apidoc -i ./apidoc ./doc"
   },
   "author": "",
   "license": "ISC"

@@ -14,7 +14,9 @@
 			"database_url" : "mongodb://user:password@ds133321.mlab.com:33321/"
 		},
 		"dynamodb":{
-			"aws_dynamodb_region" : "us-west-2"
+			"aws_dynamodb_region" : "us-west-2",
+			"meta_table_name" : "prefix-meta",
+			"data_table_name" : "prefix-data"
 		}
 	},
 	"api":{
