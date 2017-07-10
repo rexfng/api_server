@@ -135,25 +135,6 @@
  * @apiParam {String} [key]  any other key-value pairs.
  */
 
- /**
- * @api {get} /api/v1/auth/:email GET
- * @apiName Auth Get Salt By Email
- * @apiGroup Auth Service
- * @apiDescription Get Random Salt from email address to create password hash for user authentiation POST request.
- * @apiVersion 1.0.0
- *
- * @apiParam {String} email unique email that represents the user's identity.
- * @apiParamExample {json} Return example:
- *{
-    "is_salt": true,
-    "salt": "46b055a3116c7b800a05fa03d35d41e0"
- *}
-  * @apiErrorExample {json} Error-Response:
- *     {
- *       "is_salt": false
- *     }
- */
-
 
  /**
  * @api {post} /api/v1/auth POST

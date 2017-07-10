@@ -1,14 +1,14 @@
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+const config = require('./env/' + process.env.NODE_ENV);
 const express = require('express'),
 	  device = require('express-device'),
 	  ua = require('express-useragent');
 const bodyParser = require('body-parser'),
 	  cookieParser = require('cookie-parser'),
 	  app = express();
-const server = app.listen(3000, function(){
+const server = app.listen(config.app.port, function(){
 	console.log('listening on port %s', server.address().port);
 });	
-process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-const config = require('./env/' + process.env.NODE_ENV);
 const nodemailer = require('nodemailer');
 const twilio = require('twilio');
 const io = require('socket.io')(server);
@@ -164,7 +164,7 @@ app.post('/api/v1/auth', function(req, res){
 					'ssid': uid, 
 					'user': JSON.stringify({
 						'id': user_id,
-						'_self': config.app.root_url + '/api/v1' + '/user/' + user_id 
+						'_self': config.app.root_url + ':' + config.app.port + '/api/v1' + '/user/' + user_id 
 					}),
 					'ip_address': req.ip,
 					'useragent': JSON.stringify(req.useragent),

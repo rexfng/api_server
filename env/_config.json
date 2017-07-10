@@ -1,6 +1,7 @@
 {
 	"app":{
-		"root_url": "http://localhost:3000",
+		"root_url": "http://localhost",
+		"port": "3000",
 		"jwk":{
 			"is_jwk": "false",
 			"jwksUri" : "https://example.auth0.com/.well-known/jwks.json",

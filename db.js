@@ -5,7 +5,7 @@ const AWS = require("aws-sdk");
           accessKeyId: process.env.aws_accessKeyId || config.api.aws.aws_accessKeyId, 
           secretAccessKey: process.env.aws_secretAccessKey || config.api.aws.aws_secretAccessKey,
           region: process.env.aws_dynamodb_region || config.db.dynamodb.aws_dynamodb_region,
-          endpoint: config.app.root_url
+          endpoint: config.app.root_url + ':' + config.app.port
       });
 const mongoose = require('mongoose');
 	  mongoose.connect(config.db.mongodb.database_url);
