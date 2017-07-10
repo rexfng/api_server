@@ -26,3 +26,6 @@ The repo has 2 major purpose. 1) it works as a RESTful endpoint powered by node 
 
 ### To-Do
 1. Adding Unit Test
+
+### Dev Log
+1.0.0 Create basic functionality for the api_server endpoint
