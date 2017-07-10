@@ -1,5 +1,9 @@
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-const config = require('./env/' + process.env.NODE_ENV);
+if (process.env.NODE_ENV == 'development') {
+	const config = require('./env/' + process.env.NODE_ENV);
+}else{
+	const config = null;
+}
 const express = require('express'),
 	  device = require('express-device'),
 	  ua = require('express-useragent');
