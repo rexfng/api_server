@@ -10,7 +10,7 @@
  * @apiParam {String/Object} value  Your custom key-value pair of your data.
 
  * @apiParamExample {json} Return example:
- *     {[{
+ *     [{
  *       "_id": 5910dd5df5306e9b11ab4aef,
  		 "key": "value",
  		 "key": "value",
@@ -51,18 +51,6 @@
  * @apiParam {String} value  Your custom key-value pair of your data.
  * @apiParam {String} [value]  You can have multiple ones.
 
- */
-
- /**
- * @api {post} /api/v1/:type/:id POST key-value to id
- * @apiName Data Id Post
- * @apiGroup Data Service
- * @apiDescription Posting more key-value pairs to a specific data object base on :id and :type. Since the database does not assume a schema, you can have objects with different key-value pair within the same type
- * @apiVersion 1.0.0
- *
- * @apiParam {String} value  Your custom key-value pair of your data.
- * @apiParam {String} [value]  You can have multiple ones.
-    }}
  */
 
   /**
@@ -120,32 +108,6 @@
 
 
 
-
- /**
- * @api {post} /api/v1/tpl POST
- * @apiName Template
- * @apiGroup Template Service
- * @apiDescription Combine mustashe js template and data from Data service or supplied data to create a compiled output.
- * @apiVersion 1.0.0
- *
- * @apiParam {String} template  URLEncode Mustache js template 
- * @apiParam {String} [data_id] Pass in data_id and its property will be available for the template to convert.
- * @apiParam {String} [value]   If data_id is abscenct, it takes key value. You can supply as many key-value pair as you want.
-
- * @apiParamExample {json} Return example:
- *     {{
-			"template": "< h1 >Hi {{first_name}}, thank you for signing up.< h1 >", 
-			"data_id": "5910dd5df5306e9b11aef213", 
-			"text": "Welcome Joe! Thank you for signing up. Please click this link ..." 
-			"html": "html codes"
- *     }}
- */
-
-
-
-
-
-
   /**
  * @api {post} /api/v1/sms POST
  * @apiName SMS
@@ -162,6 +124,16 @@
  *     }}
  */
 
+ /**
+ * @api {post} /api/v1/user POST
+ * @apiName User
+ * @apiGroup User Service
+ * @apiDescription Creating User Model.
+ * @apiVersion 1.0.0
+ *
+ * @apiParam {String} password  takes any client side hashes mixing with server side salts and store them in the database along side with any other key-values provided along this POST request.
+ * @apiParam {String} [key]  any other key-value pairs.
+ */
 
  /**
  * @api {get} /api/v1/auth/:email GET
@@ -279,24 +251,5 @@
 
 
 
-
-
-
-
-/**
- * @api {post} /api/v1/video-call POST
- * @apiName Video Call
- * @apiGroup Video Call Service
- * @apiDescription Providing wrapper for API AI.
- * @apiVersion 1.0.0
- *
- * @apiParam {String} to  SMS is delivered to this phone number.
- * @apiParam {String} body  Body of the SMS message.
- * @apiParamExample {json} Return example:
- *     {{
-			"to": "+16041234567", 
-			"body": "Welcome Joe! Thank you for signing up. Please text back the 4 digit verification code" 
- *     }}
- */
 
 

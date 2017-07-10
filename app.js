@@ -2,7 +2,8 @@ const express = require('express'),
 	  device = require('express-device'),
 	  ua = require('express-useragent');
 const bodyParser = require('body-parser'),
-	  cookieParser = require('cookie-parser');	app = express();
+	  cookieParser = require('cookie-parser'),
+	  app = express();
 const server = app.listen(3000, function(){
 	console.log('listening on port %s', server.address().port);
 });	
@@ -15,14 +16,14 @@ const ObjectID = require("bson-objectid");
 const jwt = require('express-jwt');
 const jwks = require('jwks-rsa');
 const crypto = require("crypto");
-const cryptico = require("cryptico");
 const assert = require('assert-callback');
-const mustache = require('mustache');
 const logger = require('morgan');
 const _ = require('lodash');
+
 const Meta = require('./db').model.Meta;
 const Data = require('./db').model.Data;
 const mongoose = require('./db').model.mongoose;
+
 const jwtCheck = jwt({
 	//https://devcenter.heroku.com/articles/config-vars
     secret: jwks.expressJwtSecret({
@@ -62,18 +63,19 @@ var DB = {
 				var dataParams = {
 				    TableName:"reach-data",
 				    Item:{
-						"id": ObjectID.generate(),
+						"_id": ObjectID.generate(),
 				        "type": type,
 				    }
 				};
 				tableData.put(dataParams, function(err, data) {
+					console.log(err)
 				    if (!err){
 						for (var key in json){					
 							var tableMeta = new AWS.DynamoDB.DocumentClient();
 							var metaParams = {
 							    TableName:"reach-meta",
 							    Item:{
-							        "id": ObjectID.generate(),
+							        "_id": ObjectID.generate(),
 							        "data_id": dataParams.Item.id,
 							        "k": key,
 							        "v": json[key]
@@ -119,7 +121,7 @@ var DB = {
 						var metaParams = {
 						    TableName:"reach-meta",
 						    Item:{
-						        "id": ObjectID.generate(),
+						        "_id": ObjectID.generate(),
 						        "data_id": id,
 						        "k": key,
 						        "v": json[key]
@@ -211,7 +213,7 @@ var DB = {
 						    var metaParams = {
 						        TableName: "reach-meta",
 						        Key:{
-						            "id": data.Items[i].id,
+						            "_id": data.Items[i].id,
 						        }
 						    };
 						    tableMeta.delete(metaParams, function(err, data) {
@@ -223,7 +225,7 @@ var DB = {
 			    var dataParams = {
 			        TableName: "reach-data",
 			        Key:{
-			            "id": id,
+			            "_id": id,
 			        }
 			    };
 
@@ -324,7 +326,7 @@ if (config.db.which_DB == "mongodb") {
 }
 	// dbQuery.readAll("chat", callback());
 	// dbQuery.update("WVFPDgS7HcPCF4WRAAAC", {first_name: "John", last_name: "Wall"});
-	// dbQuery.create(req.params.type, {title: "Christy", content: "jakdpfoaiofj alif ialsjfliasjfsfj."});
+	// dbQuery.create(req.params.type, {title: "The World's Greatest Book", content: "jakdpfoaiofj alif ialsjfliasjfsfj."});
 	// dbQuery.readOne("WU72WAXyLcPCF3czAAAC",callback());
 	// dbQuery.delete(req.params.id, callback);
 
@@ -377,10 +379,6 @@ app.all('/', function(req, res, next) {
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
   next();
 });
-// app.get('/api/v1/ws', function(req,res){
-// 	// test endpoint for client socket
-// 	res.status(200).sendFile(__dirname + '/test.html');
-// });
 
 app.get('/api/v1/:type', function(req,res){
 	dbQuery.readAll(req.params.type, function(data){
@@ -411,40 +409,7 @@ app.get('/api/v1/:type/:id', function(req,res){
 		res.status(200).send(data);				
 	});	
 })
-app.post('/api/v1/tpl', function(req, res){
-	res.status(200);
-	if (req.body.data_id) {
-		Meta.find({"data_id": req.body.data_id},function(err, response){
-			var metas = []
-			var id = new Object();
-			id['_id'] = req.params.id;
-			metas.push(id);
-			for (var i = response.length - 1; i >= 0; i--) {
-				var meta = new Object();
-				meta[response[i].key] = response[i].value[0]; 
-				metas.push(meta);
-			}
-			var metas = metas.reduce(function(acc, x) {
-			    for (var key in x) acc[key] = x[key];
-			    return acc;
-			}, {});
 
-			var source = eval(decodeURIComponent(req.body.template));
-			var template = mustache.render(source, metas);
-
-			res.send(template);		
-			res.end();
-
-		})				
-	}else{
-		var reqClone = JSON.parse(JSON.stringify(req.body));
-		reqClone.template = undefined;
-		var source = eval(decodeURIComponent(req.body.template));
-		var template = mustache.render(source, reqClone);
-		res.send(template);		
-		res.end();
-	}
-})
 app.post('/api/v1/mailer', function(req, res){
 	// create reusable transporter object using the default SMTP transport
 	let transporter = nodemailer.createTransport({
@@ -484,24 +449,17 @@ app.post('/api/v1/sms', function(req, res){
 	})
 	.then((message) => console.log(message.sid));
 })
+app.post('/api/v1/user', function(req, res){
+	var user = req.query;
+	var randomSalt = crypto.randomBytes(16).toString('hex');
+		user.salt = randomSalt;
+	var hash = crypto.createHash("sha256").update(randomSalt + user.password).digest("base64");
+		user.password = hash;
+		console.log(user);
+	dbQuery.create("user", req.query);
+	res.status(200).end();	
+})
 app.post('/api/v1/auth', function(req, res){
-	function sha256(data) {
-	    return crypto.createHash("sha256").update(data).digest("base64");
-	}
-	var sha = sha256('46b055a3116c7b800a05fa03d35d41e0' + 'password');
-	var hashPassword = "sT0vJEjkf8UP/pzs2XOHKjeeOggDixb14ewOtGOwDXU=";
-	const password = "password";
-	console.log(crypto.randomBytes(16).toString('hex'));
-	privateKey = cryptico.generateRSAKey(password, 2048);
-	const publicKey = cryptico.publicKeyString(privateKey);
-	// console.log(publicKey);
-	let message = "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Commodi deserunt, maiores ratione? Molestias facilis natus, dolore accusantium eaque, ullam a similique sint. Tempore, aut aliquam eveniet modi, numquam at dolorum.";
-	var result = cryptico.encrypt(message, publicKey);
-	// console.log(result);
-	let cipherText = "vqb4FB0cONcY/fKMCeNc3/a663CTuChFi/OFuY6L08dmf/D4l2lgH3ry71EYaW825+shKxclZdjqr/aP9FyvnUb4WMbz3C4MXYKwX1GohI0Lz330c7yxOqmSiDckgpTr0KzG6R0Q9wkk+crJTymHHLmTjU0dOSKCPW2G/RbOObbifyAwvEUfsP6E5lfbRlCVkMvpdvZZtSTWLzQP4tozR8/kWrRBCFr0zM0rlNHtywjxX7seY4XO0l8T9VnWK5+LpeFpghSJuzpPe4o6g+TYowyDrjg1PvrC3RyfnZg0afCQOzxP88lgjofC4Z64yZfaA1Rqyqz4aol+QWOsQKQHzA==?OoUG8uZG452GqP83yZ6HbEWWyMxpycGNHxuwDlf41OKxdQFlb0/pNDagy0SRzA3sR7ZkD++m/EGl1L5TuCHWGWa5SOQufLnJcQP3xzEd/Xat9m1Jhl7rOvEMuXK3SiUzwPgeSm5pd/DpguNVLbZv3h61mpVt5SQw/zUvUiRF/D+XkXYHIei9eASCcZ41nLnwf7Ki67h7wfadfSz2qeV/0yMw0pyZLDAf10QJ7f/ToMYdb57mG9m1MIPgq92A0WyhsSxg/yExGaSbGg8hKpcCSmCgedMZgdXOBaOUGRHKWk9gCbxmDpBhyv7UXMjvcmKNW4S4HpeuqXiokPxu724aMtMAsxQUiVRugNr19VD4FgvwbyS2i22MfYaI5rwCRTthb3QmtFCzAHhI5surT6FawjU2GmEd94zPI6j6oJSC6vm7G4t4LbKI2RA47ckeqGcQFK+qo5/DrA0RPUT1PD3ltrvfbcNZGlKBGXG6YaaXQlKUkjNlQS/3N0b5JA/cdDDjD7zgkm6N0011Etm1vSNFz+FzGuPrsODBZVq9wcWvI/WvgWcZCEcOAmBv+WQWZoCEgncX8dkMHxZIrw8uRLSsTYxGN1El4eFVc27kEtC3uJenQ86u+AQEFxs80JebfoUJqpSUBwg1gDP2AvhlwCD0aLd4AhQ6o4/yj4/PCGinBK8ik31YrxRf0av10P1M1jDUBin4lU69Ii+S/6UG1Sz4wOAbToX6MHeOBLQDWo00oyrRAdkBq6n6rp7UuHFoyKqfC/5yFho0b8dRbmJD7CYX9iURaow6EzDLtt+ejkjEq9/M+7ZfpdnAFPqOoN7dbGolmizPf9Sh+hUr/VNkvXYElHDGkDPQ60TFNmd3ZDSDO8mdntPF3AyT9vggQBcazlRaXgyBb7SgbAKDVJe1NdMyX4VMA7pL3agk0oSy6/eC8st5aJmF0r2bt7N8QvSUh+h6aiMYloQdeBKQCsn7WdiF5DREst6gHBEdcyzEfwhzwjoWkmD1OoKUUrAQo+aLpHe0BqXchs/HftV/7KZuDBfKgulLxWZlzaFmbVkFxNOdiN8B+d7AiGtpwDyVwuZmGX7HUsIWUTk3m91gyiG4TyPFIp5EBrUyJRpFGFIpRffZZCtUfebou17D+gFbpPQmjTS2UCI1lszwl52+Fm92vkKnn7nTr9tZk/7/edmwnwGSI3DrzrKuc2h8vatJ0Vg0jkSHB6HL6QoSkThXluYiLq97PtbDo/p0Ote5oPWOwElFcJtypvrvhM2w8BPzIfnsLrwRXDqH+ti/VTtTmeuGD70P6Tx36TmbbS63kS/F6JICakU+q7zsb11V/M8kV3tWWike"
-	let decrypt = cryptico.decrypt(cipherText, privateKey);
-
-	// console.log(decrypt);
 	var ip;
 	if (req.headers['x-forwarded-for']) {
 	    ip = req.headers['x-forwarded-for'].split(",")[0];
@@ -510,69 +468,34 @@ app.post('/api/v1/auth', function(req, res){
 	} else {
 	    ip = req.ip;
 	};
-	Meta.find({"key": "ssid", "value" : req.cookies.ssid}, function(err, response){
-		console.log(response[0]);
-		console.log(response[0] == undefined);
-		if (response[0] == undefined) {
-			//if ssid returns [], look for email and password, assign session if matches, deny if not
-			Meta.find({"key":"email", "value": req.query.email},function(err, response){
-				var user_id = response[0].data_id;
-				Meta.find({"data_id": user_id},function(err, response){
-					for (var i = 0; i < response.length; i++) {
-						if(response[i].key == "password" ){
-							if(response[i].value[0] == req.query.password){
-					  			uid(18).then(function(uid){
-					  				//create session data object and store in database
-									new Data({
-										type: 'session'
-									}).save(function(err,data){
-										args = {
-											'ssid': uid, 
-											'user': JSON.stringify({
-												'id': user_id,
-												'_self': config.app.root_url + '/api/v1' + '/user/' + user_id 
-											}),
-											'ip_address': req.ip,
-											'useragent': JSON.stringify(req.useragent),
-											'timestamp': mongoose.Types.ObjectId(data._id).getTimestamp()
-										};
-										// console.log(args);
-										for (var key in args){
-											new Meta({
-												key : key,
-												value : args[key],
-												data_id : data._id
-											}).save();
-										}
-									});
-									res.cookie('ssid', uid);
-									res.status(200).send({is_authenticated: true});				
-								});		
-							}else{
-								res.status(200).send({is_authenticated: false});
-							}
-						}
-					}
-				})
+	dbQuery.readAll("user", function(data){
+		function generateSession(user_id, callback){
+			uid(18).then(function(uid){
+				session = {
+					'ssid': uid, 
+					'user': JSON.stringify({
+						'id': user_id,
+						'_self': config.app.root_url + '/api/v1' + '/user/' + user_id 
+					}),
+					'ip_address': req.ip,
+					'useragent': JSON.stringify(req.useragent),
+					'timestamp': mongoose.Types.ObjectId(data._id).getTimestamp()	
+				}
+				callback(session);			
 			})
-		}else{
-			// if ssid is found, find user and return user
-			Data.find({"_id": response[0].data_id}, function(err, response){
-				Meta.find({"data_id": response[0]._id}, function(err,response){
-					for (var i = 0; i < response.length; i++) {
-						if(response[i].key == "user"){
-							res.status(200).send({
-								is_authenticated: true,
-								user: JSON.parse(response[i].value)
-
-							});
-						}
-					}
-				});
-			})					
 		}
-
-	})	
+		var filter = _.filter(data, {email: req.query.email});
+		var password = crypto.createHash("sha256").update(filter[0].salt + req.query.password).digest("base64");
+		if (filter[0].password == password) {
+			generateSession(filter[0]._id, function(json){
+				dbQuery.create('session',json);
+				res.cookie('ssid', json.ssid);
+				res.status(200).send({is_authenticated: true});	
+			});
+		} else {
+			res.status(200).send({is_authenticated: false});
+		}
+	});
 })
 app.post('/api/v1/:type', function(req, res){
 	dbQuery.create(req.params.type, req.query);
@@ -584,7 +507,6 @@ app.post('/api/v1/:type/:id', function(req,res){
 });
 app.delete('/api/v1/session/:id', function(req,res){
 	//delete session by ssid
-	console.log(req.params.id);
 	Meta.remove({"key":"ssid", "value": req.params.id}, function(err, response){
 		if (err) {
 			res.status(200);
