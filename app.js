@@ -10,7 +10,7 @@ const express = require('express'),
 const bodyParser = require('body-parser'),
 	  cookieParser = require('cookie-parser'),
 	  app = express();
-const server = app.listen(config.app.port, function(){
+const server = app.listen(process.env.port || config.app.port, function(){
 	console.log('listening on port %s', server.address().port);
 });	
 const nodemailer = require('nodemailer');
