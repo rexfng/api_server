@@ -1,16 +1,16 @@
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-if (process.env.NODE_ENV == 'development') {
-	const config = require('./env/' + process.env.NODE_ENV);
-}else{
-	const config = require('./env/_config');
-}
+
+const config = require('./env/' + process.env.NODE_ENV) || {};
+
 const express = require('express'),
 	  device = require('express-device'),
 	  ua = require('express-useragent');
 const bodyParser = require('body-parser'),
 	  cookieParser = require('cookie-parser'),
 	  app = express();
-const server = app.listen(process.env.port || config.app.port, function(){
+	  console.log(config);
+const port = process.env.port || config.app.port;
+const server = app.listen(port, function(){
 	console.log('listening on port %s', server.address().port);
 });	
 const nodemailer = require('nodemailer');
