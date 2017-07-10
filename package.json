@@ -38,6 +38,7 @@
     "nodemon": "^1.11.0"
   },
   "scripts": {
+    "start": "node app",
     "test": "mocha ./test",
     "api": "apidoc -i ./apidoc ./doc"
   },
