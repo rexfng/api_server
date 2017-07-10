@@ -21,6 +21,7 @@ const logger = require('morgan');
 const _ = require('lodash');
 const DB = require('./db').DB;
 
+console.log(process.env.NODE_ENV);
 	// dbQuery.readAll("chat", callback());
 	// dbQuery.update("WVFPDgS7HcPCF4WRAAAC", {first_name: "John", last_name: "Wall"});
 	// dbQuery.create(req.params.type, {title: "The World's Greatest Book", content: "jakdpfoaiofj alif ialsjfliasjfsfj."});
