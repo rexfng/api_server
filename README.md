@@ -20,6 +20,8 @@ The repo has 2 major purpose. 1) it works as a RESTful endpoint powered by node 
     - aws_dynamodb_region
     - dynamodb_data_table_name
     - dynamodb_meta_table_name
+    - mongodb_database_url
+    - which_DB
 2. `npm install`
 3. `npm run api` create doc directory and files. Visit project root to see api documentation
 4. `nodemon app`

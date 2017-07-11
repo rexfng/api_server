@@ -12,7 +12,7 @@ const AWS = require("aws-sdk");
           endpoint: process.env.root_url + ':' + process.env.port || config.app.root_url + ':' + config.app.port
       });
 const mongoose = require('mongoose');
-	  mongoose.connect(config.db.mongodb.database_url);
+	  mongoose.connect(process.env.mongodb_database_url || config.db.mongodb.database_url);
 const connection = mongoose.connection;
 const Schema = mongoose.Schema;
 const ObjectID = require("bson-objectid");
