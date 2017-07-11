@@ -41,7 +41,7 @@ const jwtCheck = jwt({
         jwksRequestsPerMinute: 5,
         jwksUri: process.env.jwksUri || config.app.jwk.jwksUri
     }),
-    audience: process.env.audience || config.app.jwk.audience,
+    audience: process.env.root_url + process.env.audience || config.app.root_url + config.app.jwk.audience,
     issuer: process.env.issuer || config.app.jwk.issuer,
     algorithms: ['RS256']
 }), is_jwk = process.env.is_jwk || config.app.jwk.is_jwk;
