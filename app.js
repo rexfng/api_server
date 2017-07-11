@@ -12,8 +12,7 @@ const express = require('express'),
 const bodyParser = require('body-parser'),
 	  cookieParser = require('cookie-parser'),
 	  app = express();
-const port = process.env.port || config.app.port;
-const host = '0.0.0.0';
+const port = process.env.PORT || config.app.port;
 const server = app.listen(port, host, function(){
 	console.log('listening on port %s', server.address().port);
 });	
