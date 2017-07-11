@@ -9,7 +9,7 @@ const AWS = require("aws-sdk");
           accessKeyId: process.env.aws_accessKeyId || config.api.aws.aws_accessKeyId, 
           secretAccessKey: process.env.aws_secretAccessKey || config.api.aws.aws_secretAccessKey,
           region: process.env.aws_dynamodb_region || config.db.dynamodb.aws_dynamodb_region,
-          endpoint: process.env.root_url + ':' + process.env.PORT || config.app.root_url + ':' + config.app.port
+          endpoint: process.env.root_url || config.app.root_url + ':' + config.app.port
       });
 const mongoose = require('mongoose');
 	  mongoose.connect(process.env.mongodb_database_url || config.db.mongodb.database_url);
