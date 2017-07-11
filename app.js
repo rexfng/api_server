@@ -58,9 +58,10 @@ if (is_jwk == 'true') {
 }else{
 	console.log('jwkCheck is disable, api endpoint is not secured');
 }
-if (config.db.which_DB == "mongodb") {
+var which_DB = process.env.which_DB || config.db.which_DB;
+if (which_DB == "mongodb") {
 	var dbQuery = new DB.query.mongodb;
-}else if (config.db.which_DB == "dynamodb") {
+}else if (which_DB == "dynamodb") {
     var dbQuery = new DB.query.dynamodb;
 }
 
