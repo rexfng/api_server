@@ -1,6 +1,8 @@
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
-const config = require('./env/' + process.env.NODE_ENV) || {};
+if (process.env.NODE_ENV !== "production") {
+	var config = require('./env/' + process.env.NODE_ENV);
+}
 
 const express = require('express'),
 	  device = require('express-device'),
@@ -8,7 +10,6 @@ const express = require('express'),
 const bodyParser = require('body-parser'),
 	  cookieParser = require('cookie-parser'),
 	  app = express();
-	  console.log(config);
 const port = process.env.port || config.app.port;
 const server = app.listen(port, function(){
 	console.log('listening on port %s', server.address().port);
