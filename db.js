@@ -34,7 +34,7 @@ const DB = {
 			this.create = function(type, json){
 				var tableData = new AWS.DynamoDB.DocumentClient();
 				var dataParams = {
-				    TableName:dynamodb_data_table_name || config.db.dynamodb.data_table_name,
+				    TableName:process.env.dynamodb_data_table_name || config.db.dynamodb.data_table_name,
 				    Item:{
 						"_id": ObjectID.generate(),
 				        "type": type,
@@ -46,7 +46,7 @@ const DB = {
 						for (var key in json){					
 							var tableMeta = new AWS.DynamoDB.DocumentClient();
 							var metaParams = {
-							    TableName:dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+							    TableName:process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
 							    Item:{
 							        "_id": ObjectID.generate(),
 							        "data_id": dataParams.Item.id,
@@ -63,7 +63,7 @@ const DB = {
 			this.update = function(id, json){	
 				var tableMeta = new AWS.DynamoDB.DocumentClient();
 			    var metaParams = {
-			        TableName: dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+			        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
 			        Key:{
 			            "data_id": id,
 			        }
@@ -79,7 +79,7 @@ const DB = {
 			    			if(_.includes(jsonKeys, data.Items[i].k)){
 								var tableMeta = new AWS.DynamoDB.DocumentClient();
 							    var metaParams = {
-							        TableName: dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+							        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
 							        Key:{
 							            "id": data.Items[i].id,
 							        }
@@ -92,7 +92,7 @@ const DB = {
 					for (var key in json){			
 						var tableMeta = new AWS.DynamoDB.DocumentClient();
 						var metaParams = {
-						    TableName:dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+						    TableName:process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
 						    Item:{
 						        "_id": ObjectID.generate(),
 						        "data_id": id,
@@ -107,7 +107,7 @@ const DB = {
 			}
 			this.readAll = function(type, callback){
 				var tableData = new AWS.DynamoDB.DocumentClient();
-				var params = { TableName: dynamodb_data_table_name || config.db.dynamodb.data_table_name };
+				var params = { TableName: process.env.dynamodb_data_table_name || config.db.dynamodb.data_table_name };
 			    tableData.scan(params, function(err, data){
 			    	if (!err) {
 			    		for (var i = 0; i < data.Items.length; i++) {
@@ -116,7 +116,7 @@ const DB = {
 			    				var dataIdArr = [];
 			    				var responseArr = [];
 								var metaParams = {
-							        TableName: dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+							        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
 							    };	
 			    				for (var i = 0; i < data.Items.length; i++) {
 			    					var data_id = data.Items[i].id;
@@ -141,7 +141,7 @@ const DB = {
 			}
 			this.readOne = function(id, callback){
 				var tableData = new AWS.DynamoDB.DocumentClient();
-				var params = { TableName: dynamodb_data_table_name || config.db.dynamodb.data_table_name };
+				var params = { TableName: process.env.dynamodb_data_table_name || config.db.dynamodb.data_table_name };
 			    tableData.scan(params, function(err, data){
 			    	if (!err) {
 			    		for (var i = 0; i < data.Items.length; i++) {
@@ -149,7 +149,7 @@ const DB = {
 								var tableMeta = new AWS.DynamoDB.DocumentClient();
 								var type = data.Items[i].type;
 								var metaParams = {
-							        TableName: dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+							        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
 							        Key:{
 							            "data_id": data.Items[i].id
 							        }
@@ -174,7 +174,7 @@ const DB = {
 			this.delete = function(id, status){
 				var tableMeta = new AWS.DynamoDB.DocumentClient();
 				var metaParams = {
-			        TableName: dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+			        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
 			        Key:{
 			            "data_id": id
 			        }
@@ -184,7 +184,7 @@ const DB = {
     					if (data.Items[i].data_id == id){
 							var tableMeta = new AWS.DynamoDB.DocumentClient();
 						    var metaParams = {
-						        TableName: dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+						        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
 						        Key:{
 						            "_id": data.Items[i].id,
 						        }
@@ -196,7 +196,7 @@ const DB = {
 				})
 				var tableData = new AWS.DynamoDB.DocumentClient();
 			    var dataParams = {
-			        TableName: dynamodb_data_table_name || config.db.dynamodb.data_table_name,
+			        TableName: process.env.dynamodb_data_table_name || config.db.dynamodb.data_table_name,
 			        Key:{
 			            "_id": id,
 			        }
