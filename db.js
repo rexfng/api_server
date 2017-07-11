@@ -1,5 +1,9 @@
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-const config = require('./env/' + process.env.NODE_ENV);
+if (process.env.NODE_ENV !== "production") {
+	var config = require('./env/' + process.env.NODE_ENV);
+}else{
+	var config = require('./env/_config');
+}
 const AWS = require("aws-sdk");
       AWS.config.update({
           accessKeyId: process.env.aws_accessKeyId || config.api.aws.aws_accessKeyId, 
