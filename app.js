@@ -13,7 +13,7 @@ const bodyParser = require('body-parser'),
 	  cookieParser = require('cookie-parser'),
 	  app = express();
 const port = process.env.PORT || config.app.port;
-const server = app.listen(port, host, function(){
+const server = app.listen(port, function(){
 	console.log('listening on port %s', server.address().port);
 });	
 const nodemailer = require('nodemailer');
