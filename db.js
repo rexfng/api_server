@@ -4,6 +4,7 @@ if (process.env.NODE_ENV !== "production") {
 }else{
 	var config = require('./env/_config');
 }
+const _ = require('lodash');
 const AWS = require("aws-sdk");
       AWS.config.update({
           accessKeyId: process.env.aws_accessKeyId || config.api.aws.aws_accessKeyId, 
