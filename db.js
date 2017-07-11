@@ -136,6 +136,8 @@ const DB = {
 			    				})	
 			    			}
 			    		}
+			    	}else{
+			    		console.log(err);
 			    	}
 			    })
 			}
