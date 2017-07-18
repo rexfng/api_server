@@ -1,3 +1,4 @@
+const mocha = require("mocha");
 const request = require("request");
 const assert = require("assert");
 var base_url = "http://localhost:3000";

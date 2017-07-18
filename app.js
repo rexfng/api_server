@@ -53,6 +53,11 @@ app.use(ua.express())
 app.use(bodyParser());
 app.use(cookieParser());
 app.use(logger("default"));
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 if (is_jwk == 'true') {
 	app.use(jwtCheck);	
 }else{
@@ -92,11 +97,7 @@ io.on('connection', function (socket) {
 	    });		
 	})
 });
-app.all('/', function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "X-Requested-With");
-  next();
-});
+
 app.get('/api/v1/:type', function(req,res){
 	dbQuery.readAll(req.params.type, function(data){
 		res.status(200).send(data);
