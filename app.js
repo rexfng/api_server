@@ -154,7 +154,7 @@ app.post('/api/v1/user', function(req, res){
 	var hash = crypto.createHash("sha256").update(randomSalt + user.password).digest("base64");
 		user.password = hash;
 		console.log(user);
-	dbQuery.create("user", req.query);
+	dbQuery.create("user", user);
 	res.status(200).end();	
 })
 app.post('/api/v1/auth', function(req, res){
@@ -182,8 +182,8 @@ app.post('/api/v1/auth', function(req, res){
 				callback(session);			
 			})
 		}
-		var filter = _.filter(data, {email: req.query.email});
-		var password = crypto.createHash("sha256").update(filter[0].salt + req.query.password).digest("base64");
+		var filter = _.filter(data, {email: req.body.email});
+		var password = crypto.createHash("sha256").update(filter[0].salt + req.body.password).digest("base64");
 		if (filter[0].password == password) {
 			generateSession(filter[0]._id, function(json){
 				dbQuery.create('session',json);
