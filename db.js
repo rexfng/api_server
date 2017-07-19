@@ -43,7 +43,9 @@ const DB = {
 				    }
 				};
 				tableData.put(dataParams, function(err, data) {
-					console.log(err)
+					// console.log(dataParams)
+					// console.log(err)
+					// console.log(json)
 				    if (!err){
 						for (var key in json){					
 							var tableMeta = new AWS.DynamoDB.DocumentClient();
