@@ -185,17 +185,36 @@ app.post('/api/v1/auth', function(req, res){
 			})
 		}
 		var filter = _.filter(data, {email: req.body.email});
-		var password = crypto.createHash("sha256").update(filter[0].salt + req.body.password).digest("base64");
-
-		if (filter[0].password == password) {
-			generateSession(filter[0].id, function(json){
-				dbQuery.create('session',json);
-				res.cookie('ssid', json.ssid);
-				res.status(200).send({is_authenticated: true});	
-			});
-		} else {
+		if (filter == "") {
 			res.status(200).send({is_authenticated: false});
+		}else{
+			var password = crypto.createHash("sha256").update(filter[0].salt + req.body.password).digest("base64");
+
+			if (filter[0].password == password) {
+				generateSession(filter[0].id, function(json){
+					dbQuery.create('session',json);
+					res.cookie('ssid', json.ssid);
+					res.status(200).send({is_authenticated: true});	
+				});
+			} else {
+				res.status(200).send({is_authenticated: false});
+			}
 		}
+		// if(filter[0].salt !== undefined){
+		// 	var password = crypto.createHash("sha256").update(filter[0].salt + req.body.password).digest("base64");
+
+		// 	if (filter[0].password == password) {
+		// 		generateSession(filter[0].id, function(json){
+		// 			dbQuery.create('session',json);
+		// 			res.cookie('ssid', json.ssid);
+		// 			res.status(200).send({is_authenticated: true});	
+		// 		});
+		// 	} else {
+		// 		res.status(200).send({is_authenticated: false});
+		// 	}
+		// }else{
+		// 	res.status(200).send({is_authenticated: false});
+		// }
 	});
 })
 app.post('/api/v1/:type', function(req, res){
