@@ -53,7 +53,7 @@ const DB = {
 							    TableName:process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
 							    Item:{
 							        "_id": ObjectID.generate(),
-							        "data_id": dataParams.Item.id,
+							        "data_id": dataParams.Item._id,
 							        "k": key,
 							        "v": json[key]
 							    }
@@ -113,6 +113,7 @@ const DB = {
 				var tableData = new AWS.DynamoDB.DocumentClient();
 				var params = { TableName: process.env.dynamodb_data_table_name || config.db.dynamodb.data_table_name };
 			    tableData.scan(params, function(err, data){
+			    	typeFilter = _.filter(data.Items, {type: type});
 			    	if (!err) {
 			    		for (var i = 0; i < data.Items.length; i++) {
 			    			if (data.Items[i].type == type) {
@@ -123,11 +124,12 @@ const DB = {
 							        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
 							    };	
 			    				for (var i = 0; i < data.Items.length; i++) {
-			    					var data_id = data.Items[i].id;
+			    					var data_id = data.Items[i]._id;
 			    					dataIdArr.push(data_id);
 			    				}
+			    				typeFilter = _.map(typeFilter, '_id');
 			    				tableMeta.scan(metaParams, function(err, data){
-			    					_.each(dataIdArr, function(id){
+			    					_.each(typeFilter, function(id){
 				    					var row = _.filter(data.Items, { data_id: id });
 				    					var build = {};
 				    					build.id = id;

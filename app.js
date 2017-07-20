@@ -16,6 +16,7 @@ const port = process.env.PORT || config.app.port;
 const server = app.listen(port, function(){
 	console.log('listening on port %s', server.address().port);
 });	
+const ObjectID = require("bson-objectid");
 const nodemailer = require('nodemailer');
 const twilio = require('twilio');
 const io = require('socket.io')(server);
@@ -99,6 +100,7 @@ io.on('connection', function (socket) {
 });
 
 app.get('/api/v1/:type', function(req,res){
+	console.log(req.params.type);
 	dbQuery.readAll(req.params.type, function(data){
 		res.status(200).send(data);
 	});
@@ -148,7 +150,7 @@ app.post('/api/v1/sms', function(req, res){
 	.then((message) => console.log(message.sid));
 })
 app.post('/api/v1/user', function(req, res){
-	var user = req.query;
+	var user = req.body;
 	var randomSalt = crypto.randomBytes(16).toString('hex');
 		user.salt = randomSalt;
 	var hash = crypto.createHash("sha256").update(randomSalt + user.password).digest("base64");
@@ -177,15 +179,16 @@ app.post('/api/v1/auth', function(req, res){
 					}),
 					'ip_address': req.ip,
 					'useragent': JSON.stringify(req.useragent),
-					'timestamp': mongoose.Types.ObjectId(data._id).getTimestamp()	
+					'timestamp': ObjectID(data._id).getTimestamp()	
 				}
 				callback(session);			
 			})
 		}
 		var filter = _.filter(data, {email: req.body.email});
 		var password = crypto.createHash("sha256").update(filter[0].salt + req.body.password).digest("base64");
+
 		if (filter[0].password == password) {
-			generateSession(filter[0]._id, function(json){
+			generateSession(filter[0].id, function(json){
 				dbQuery.create('session',json);
 				res.cookie('ssid', json.ssid);
 				res.status(200).send({is_authenticated: true});	
@@ -196,11 +199,13 @@ app.post('/api/v1/auth', function(req, res){
 	});
 })
 app.post('/api/v1/:type', function(req, res){
-	dbQuery.create(req.params.type, req.query);
-	res.status(200).end();
+	if (req.params.type !== 'auth') {
+		dbQuery.create(req.params.type, req.body);
+		res.status(200).end();
+	}
 })
 app.post('/api/v1/:type/:id', function(req,res){
-	dbQuery.update(req.params.id, req.query);
+	dbQuery.update(req.params.id, req.body);
 	res.status(200).end();	
 });
 app.delete('/api/v1/session/:id', function(req,res){
