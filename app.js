@@ -137,6 +137,7 @@ app.post('/api/v1/mailer', function(req, res){
 	   		console.log('Message %s sent: %s', info.messageId, info.response);
 	    }
 	});
+	res.status(200).send({email: req.body});	
 })
 app.post('/api/v1/sms', function(req, res){
 	var client = new twilio(
@@ -150,16 +151,16 @@ app.post('/api/v1/sms', function(req, res){
 	    from: process.env.twilio_number || config.api.twilio.twilio_number // From a valid Twilio number
 	})
 	.then((message) => console.log(message.sid));
+	res.status(200).send({sms: req.body});	
 })
 app.post('/api/v1/user', function(req, res){
-	var user = req.body;
+	var user = Object.assign({},req.body);
 	var randomSalt = crypto.randomBytes(16).toString('hex');
 		user.salt = randomSalt;
 	var hash = crypto.createHash("sha256").update(randomSalt + user.password).digest("base64");
 		user.password = hash;
-		console.log(user);
 	dbQuery.create("user", user);
-	res.status(200).end();	
+	res.status(200).send({user: req.body});	
 })
 app.post('/api/v1/auth', function(req, res){
 	var ip;
@@ -230,12 +231,41 @@ app.post('/api/v1/auth', function(req, res){
 app.post('/api/v1/:type', function(req, res){
 	if (req.params.type !== 'auth') {
 		dbQuery.create(req.params.type, req.body);
-		res.status(200).end();
+		dbQuery.readAll(req.params.type, function(data){
+			console.log(data)
+			let arr = [];
+			_.each(data, function(item){
+				let dt = ObjectID(item.id).getTimestamp();
+				let date =  new Date(dt);
+				let epoch = date.getTime();
+				arr.push(epoch);
+			})
+			var epochToDate = function (epoch){
+				return new Date(epoch);
+			}
+			var latest = _.max(arr)
+			_.each(data, function(item){
+				let dt = ObjectID(item.id).getTimestamp();	
+				let date =  new Date(dt);
+				let epoch = date.getTime();
+				if (epoch == latest) {
+					res.status(200).send(
+						{ 
+							[req.params.type]: Object.assign(req.body, { id: item.id })
+						 }
+					);
+				}
+			})
+		})
 	}
 })
 app.post('/api/v1/:type/:id', function(req,res){
 	dbQuery.update(req.params.id, req.body);
-	res.status(200).end();	
+	res.status(200).send(
+		{ 
+			[req.params.type]: req.body,
+		 }
+	);
 });
 app.delete('/api/v1/session/:id', function(req,res){
 	dbQuery.update(req.params.id, 
@@ -250,9 +280,16 @@ app.delete('/api/v1/session/:id', function(req,res){
 
 })
 app.delete('/api/v1/:type/:id', function(req,res){
-	dbQuery.delete(req.params.id, function(status){
-		res.status(200).send(status);
-	});
+	dbQuery.readOne(req.params.id, function(data){
+		dbQuery.delete(req.params.id, function(status){
+			res.status(200).send(
+				{ 
+					[req.params.type]: data,
+					is_deleted: true
+				}
+			);				
+		});
+	})
 });
 
 
