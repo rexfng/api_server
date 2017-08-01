@@ -56,6 +56,7 @@ app.use(cookieParser());
 app.use(logger("default"));
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
@@ -100,8 +101,9 @@ io.on('connection', function (socket) {
 });
 
 app.get('/api/v1/:type', function(req,res){
-	console.log(req.params.type);
+	// console.log(req.params.type);
 	dbQuery.readAll(req.params.type, function(data){
+		console.log(data);
 		res.status(200).send(data);
 	});
 })
@@ -178,7 +180,7 @@ app.post('/api/v1/auth', function(req, res){
 						'_self': config.app.root_url + ':' + config.app.port + '/api/v1' + '/user/' + user_id 
 					}),
 					'ip_address': req.ip,
-					'useragent': JSON.stringify(req.useragent),
+					'useragent': req.useragent,
 					'timestamp': ObjectID(data._id).getTimestamp()	
 				}
 				callback(session);			
@@ -194,27 +196,31 @@ app.post('/api/v1/auth', function(req, res){
 				generateSession(filter[0].id, function(json){
 					dbQuery.create('session',json);
 					res.cookie('ssid', json.ssid);
-					res.status(200).send({is_authenticated: true});	
+					res.status(200).send(
+						{
+							is_authenticated: true,
+							ssid: json.ssid
+						});	
 				});
 			} else {
 				res.status(200).send({is_authenticated: false});
 			}
 		}
-		// if(filter[0].salt !== undefined){
-		// 	var password = crypto.createHash("sha256").update(filter[0].salt + req.body.password).digest("base64");
+		if(filter[0].salt !== undefined){
+			var password = crypto.createHash("sha256").update(filter[0].salt + req.body.password).digest("base64");
 
-		// 	if (filter[0].password == password) {
-		// 		generateSession(filter[0].id, function(json){
-		// 			dbQuery.create('session',json);
-		// 			res.cookie('ssid', json.ssid);
-		// 			res.status(200).send({is_authenticated: true});	
-		// 		});
-		// 	} else {
-		// 		res.status(200).send({is_authenticated: false});
-		// 	}
-		// }else{
-		// 	res.status(200).send({is_authenticated: false});
-		// }
+			if (filter[0].password == password) {
+				generateSession(filter[0].id, function(json){
+					dbQuery.create('session',json);
+					res.cookie('ssid', json.ssid);
+					res.status(200).send({is_authenticated: true});	
+				});
+			} else {
+				res.status(200).send({is_authenticated: false});
+			}
+		}else{
+			res.status(200).send({is_authenticated: false});
+		}
 	});
 })
 app.post('/api/v1/:type', function(req, res){

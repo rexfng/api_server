@@ -76,19 +76,35 @@ const DB = {
 			    for (key in json){
 			    	jsonKeys.push(key);
 			    }
-
 			    tableMeta.scan(metaParams, function(err, data){
+			    	// console.log(data.Items)
+			    	// var filter = _.filter(data.Items, {data_id: id})
+			    	// var filter = _.filter(data.Items, function(item) {
+					   //  return _.includes(jsonKeys, data.Items)
+					        // && _.includes(item.likes, 'kayaking');
+					// });
+			    	// console.log(filter);
 			    	for (var i = 0; i < data.Items.length; i++) {
+			    		var filter = _.filter(data.Items, {data_id: id});
+			    		// console.log(filter.length)
+			    		// console.log(id)
+			    		// console.log(data.Items[i].id);
+
 			    		if( data.Items[i].data_id == id){
 			    			if(_.includes(jsonKeys, data.Items[i].k)){
+			    				// console.log(jsonKeys)
+			    				// console.log(data.Items[i].k)
+			    				// console.log(data.Items[i].v)
+			    				// console.log(data.Items[i]._id)
 								var tableMeta = new AWS.DynamoDB.DocumentClient();
 							    var metaParams = {
 							        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
 							        Key:{
-							            "id": data.Items[i].id,
+							            "_id": data.Items[i]._id,
 							        }
 							    };
 							    tableMeta.delete(metaParams, function(err, data) {
+							    	// console.log(err)
 							    })
 			    			}
 			    		}
@@ -104,7 +120,10 @@ const DB = {
 						        "v": json[key]
 						    }
 						};
+						// console.log(metaParams)
 						tableMeta.put(metaParams, function(err, data) {
+							// console.log(data)
+							// console.log(err)
 						});
 					}	
 			    })		    	
@@ -143,7 +162,7 @@ const DB = {
 			    			}
 			    		}
 			    	}else{
-			    		console.log(err);
+			    		// console.log(err);
 			    	}
 			    })
 			}
@@ -153,13 +172,13 @@ const DB = {
 			    tableData.scan(params, function(err, data){
 			    	if (!err) {
 			    		for (var i = 0; i < data.Items.length; i++) {
-			    			if (data.Items[i].id == id) {
+			    			if (data.Items[i]._id == id) {
 								var tableMeta = new AWS.DynamoDB.DocumentClient();
 								var type = data.Items[i].type;
 								var metaParams = {
 							        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
 							        Key:{
-							            "data_id": data.Items[i].id
+							            "data_id": data.Items[i]._id
 							        }
 							    };	
 
