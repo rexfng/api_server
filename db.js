@@ -152,6 +152,7 @@ const DB = {
 				    					var row = _.filter(data.Items, { data_id: id });
 				    					var build = {};
 				    					build.id = id;
+				    					build.type = type
 				    					_.each(row, function(record){
 				    						build[record.k] = record.v
 				    					})
