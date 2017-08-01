@@ -199,7 +199,8 @@ app.post('/api/v1/auth', function(req, res){
 					res.status(200).send(
 						{
 							is_authenticated: true,
-							ssid: json.ssid
+							ssid: json.ssid,
+							user_id: filter[0].id
 						});	
 				});
 			} else {
@@ -213,7 +214,10 @@ app.post('/api/v1/auth', function(req, res){
 				generateSession(filter[0].id, function(json){
 					dbQuery.create('session',json);
 					res.cookie('ssid', json.ssid);
-					res.status(200).send({is_authenticated: true});	
+					res.status(200).send({
+						is_authenticated: true,
+						user_id: filter[0].id
+					});	
 				});
 			} else {
 				res.status(200).send({is_authenticated: false});
