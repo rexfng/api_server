@@ -218,33 +218,14 @@ app.post('/api/v1/auth', function(req, res){
 	});
 })
 app.post('/api/v1/:type', function(req, res){
+
 	if (req.params.type !== 'auth') {
 		dbQuery.create(req.params.type, req.body);
 		dbQuery.readAll(req.params.type, function(data){
-			console.log(data)
-			let arr = [];
-			_.each(data, function(item){
-				let dt = ObjectID(item.id).getTimestamp();
-				let date =  new Date(dt);
-				let epoch = date.getTime();
-				arr.push(epoch);
-			})
-			var epochToDate = function (epoch){
-				return new Date(epoch);
-			}
-			var latest = _.max(arr)
-			_.each(data, function(item){
-				let dt = ObjectID(item.id).getTimestamp();	
-				let date =  new Date(dt);
-				let epoch = date.getTime();
-				if (epoch == latest) {
-					res.status(200).send(
-						{ 
-							[req.params.type]: Object.assign(req.body, { id: item.id })
-						 }
-					);
-				}
-			})
+			var lastID = _.maxBy(data, function(o) { return o.id } );
+			res.status(200).send(
+				{[req.params.type]: Object.assign(req.body, { id: lastID.id })}
+			)
 		})
 	}
 })
