@@ -66,6 +66,17 @@
 
  */
 
+/**
+
+ * @api {delete} /api/v1/:type DELETE
+ * @apiName Data Delete All
+ * @apiGroup Data Service
+ * @apiDescription Delete all data from a :type
+ * @apiVersion 1.0.0
+ *
+
+ */
+
  /**
 
  * @api {delete} /api/v1/:type/:id DELETE

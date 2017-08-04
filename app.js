@@ -103,7 +103,7 @@ io.on('connection', function (socket) {
 app.get('/api/v1/:type', function(req,res){
 	// console.log(req.params.type);
 	dbQuery.readAll(req.params.type, function(data){
-		console.log(data);
+		// console.log(data);
 		res.status(200).send(data);
 	});
 })
@@ -249,6 +249,25 @@ app.delete('/api/v1/session/:id', function(req,res){
 	res.send({ssid_destroyed: true});
 
 })
+app.delete('/api/v1/:type/', function(req,res){
+	dbQuery.readAll(req.params.type, function(data){
+		let ids_to_be_deleted = []
+		_.each(data, function(item){
+			ids_to_be_deleted.push(item.id)
+		})
+		console.log(ids_to_be_deleted)
+		_.each(ids_to_be_deleted, function(id){
+			dbQuery.delete(id);
+		})
+		res.status(200).send(
+			{ 
+				msg: "all data from type /" + req.params.type + " has been removed from the database successfully.",
+				is_deleted: true
+			}
+		);	
+	})
+});
+
 app.delete('/api/v1/:type/:id', function(req,res){
 	dbQuery.readOne(req.params.id, function(data){
 		dbQuery.delete(req.params.id, function(status){
