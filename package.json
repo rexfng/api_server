@@ -27,6 +27,7 @@
     "request": "^2.81.0",
     "request-promise": "^4.2.1",
     "s3": "^4.4.0",
+    "shortid": "^2.2.8",
     "socket.io": "^2.0.1",
     "socket.io-client": "^2.0.1",
     "twilio": "^3.3.0",

@@ -89,7 +89,20 @@
  */
 
 
+ /**
+ * @api {get} /api/v1/shortid GET ONE
+ * @apiName Short ID Get
+ * @apiGroup Short ID Gen
+ * @apiDescription The Service generates a unique 7 characters string from A-Z, a-z, 0-9, _- Please note it does not contain time information and cannot be sorted. This endpoint is a wrapper of https://github.com/dylang/shortid
+ * @apiVersion 1.0.0
+ *
+ * @apiParam {String} uuid  Contains the unique generated id.
 
+ * @apiParamExample {json} Return example:
+ *     {
+ *       uuid: "rJPHBSzD-"
+ *     }
+ */
 
 
 
