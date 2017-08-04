@@ -68,7 +68,7 @@
 
 /**
 
- * @api {delete} /api/v1/:type DELETE
+ * @api {delete} /api/v1/:type DELETE All
  * @apiName Data Delete All
  * @apiGroup Data Service
  * @apiDescription Delete all data from a :type
@@ -79,7 +79,7 @@
 
  /**
 
- * @api {delete} /api/v1/:type/:id DELETE
+ * @api {delete} /api/v1/:type/:id DELETE One
  * @apiName Data Delete
  * @apiGroup Data Service
  * @apiDescription Delete and object based on its :type and :id
