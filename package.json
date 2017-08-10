@@ -2,6 +2,10 @@
   "name": "api_template",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": "6.11.1",
+    "npm": "2.1.x"
+  },
   "main": "test.js",
   "dependencies": {
     "apidoc": "^0.17.5",
