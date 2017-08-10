@@ -140,39 +140,46 @@ const DB = {
 								var tableMeta = new AWS.DynamoDB.DocumentClient();
 			    				var dataIdArr = [];
 			    				var responseArr = [];
-								var metaParams = {
-							        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
-							    };	
+			    				var results = []
 			    				for (var i = 0; i < data.Items.length; i++) {
 			    					var data_id = data.Items[i]._id;
 			    					dataIdArr.push(data_id);
 			    				}
 			    				typeFilter = _.map(typeFilter, '_id');
-			    				tableMeta.scan(metaParams, function(err, data){
-			    					console.log(typeFilter)
-			    					_.each(typeFilter, function(id){
-			    						// var obj = {}
-			    						// for (var i = 0; i < data.Items.length; i++) {
-			    						// 	if(data.Items[i].data_id == id){
-			    						// 		// console.log(data_id)
-			    						// 		obj[data.Items[i].k] = data.Items[i].v
-			    						// 	}
-			    						// }
-			    						// // console.log(obj)
 
-				    					var row = _.filter(data.Items, { data_id: id });
-				    					// console.log(row)
+								var metaParams = {
+							        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+							    };	
+
+						    	scanDB = function(param, results, callback) {
+				    				tableMeta.scan(param, function(err, data){
+				    					// console.log(data)
+				    					results = results.concat(data.Items)
+				    					if(!_.isEmpty(data.LastEvaluatedKey)){
+				    						lastEvaluatedKey = data.LastEvaluatedKey;
+				    						param.ExclusiveStartKey = data.LastEvaluatedKey;
+				    						scanDB(param, results, callback)
+				    					} else {
+				    						// console.log(results)
+				    						callback(results);
+				    					}
+				    				})	
+						    	}
+
+						    	results = []
+						    	scanDB(metaParams, results, function(results){
+			    					_.each(typeFilter, function(id){
+				    					var row = _.filter(results, { data_id: id });
 				    					var build = {};
 				    					build.id = id;
 				    					build.type = type
 				    					_.each(row, function(record){
 				    						build[record.k] = record.v
 				    					})
-				    					// console.log(build)
 				    					responseArr.push(build);
 			    					})
 			    					callback(responseArr);
-			    				})	
+						    	})
 				    		}
 				    	}else{
 				    		callback({})
