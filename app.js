@@ -110,9 +110,8 @@ app.get('/api/v1/shortid', function(req,res){
 app.get('/api/v1/:type', function(req,res){
 	// console.log(req.params.type);
 	dbQuery.readAll(req.params.type, function(data){
-		// console.log(data);
 		res.status(200).send(data);
-	});
+	}, req.query);
 })
 app.get('/api/v1/:type/:id', function(req,res){
 	dbQuery.readOne(req.params.id, function(data){
@@ -222,7 +221,7 @@ app.post('/api/v1/auth', function(req, res){
 				res.status(200).send({is_authenticated: false});
 			}
 		}
-	});
+	}, req.query);
 })
 app.post('/api/v1/:type', function(req, res){
 
@@ -233,7 +232,7 @@ app.post('/api/v1/:type', function(req, res){
 			res.status(200).send(
 				{[req.params.type]: Object.assign(req.body, { id: lastID.id })}
 			)
-		})
+		}, req.query)
 	}
 })
 app.post('/api/v1/:type/:id', function(req,res){
@@ -258,13 +257,10 @@ app.delete('/api/v1/session/:id', function(req,res){
 })
 app.delete('/api/v1/:type/', function(req,res){
 	dbQuery.readAll(req.params.type, function(data){
-		let ids_to_be_deleted = []
 		_.each(data, function(item){
-			ids_to_be_deleted.push(item.id)
-		})
-		console.log(ids_to_be_deleted)
-		_.each(ids_to_be_deleted, function(id){
-			dbQuery.delete(id);
+			dbQuery.delete(item.id, req.params.type, function(status){
+				console.log(status)
+			});
 		})
 		res.status(200).send(
 			{ 
@@ -272,7 +268,7 @@ app.delete('/api/v1/:type/', function(req,res){
 				is_deleted: true
 			}
 		);	
-	})
+	}, req.query)
 });
 
 app.delete('/api/v1/:type/:id', function(req,res){

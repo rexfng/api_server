@@ -77,25 +77,10 @@ const DB = {
 			    	jsonKeys.push(key);
 			    }
 			    tableMeta.scan(metaParams, function(err, data){
-			    	// console.log(data.Items)
-			    	// var filter = _.filter(data.Items, {data_id: id})
-			    	// var filter = _.filter(data.Items, function(item) {
-					   //  return _.includes(jsonKeys, data.Items)
-					        // && _.includes(item.likes, 'kayaking');
-					// });
-			    	// console.log(filter);
 			    	for (var i = 0; i < data.Items.length; i++) {
 			    		var filter = _.filter(data.Items, {data_id: id});
-			    		// console.log(filter.length)
-			    		// console.log(id)
-			    		// console.log(data.Items[i].id);
-
 			    		if( data.Items[i].data_id == id){
 			    			if(_.includes(jsonKeys, data.Items[i].k)){
-			    				// console.log(jsonKeys)
-			    				// console.log(data.Items[i].k)
-			    				// console.log(data.Items[i].v)
-			    				// console.log(data.Items[i]._id)
 								var tableMeta = new AWS.DynamoDB.DocumentClient();
 							    var metaParams = {
 							        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
@@ -104,7 +89,7 @@ const DB = {
 							        }
 							    };
 							    tableMeta.delete(metaParams, function(err, data) {
-							    	// console.log(err)
+							    	console.log(err)
 							    })
 			    			}
 			    		}
@@ -120,22 +105,39 @@ const DB = {
 						        "v": json[key]
 						    }
 						};
-						// console.log(metaParams)
 						tableMeta.put(metaParams, function(err, data) {
-							// console.log(data)
-							// console.log(err)
+							console.log(err)
 						});
 					}	
 			    })		    	
 			}
-			this.readAll = function(type, callback){
+			this.readAll = function(type, callback, query){
 				var tableData = new AWS.DynamoDB.DocumentClient();
-				var params = { TableName: process.env.dynamodb_data_table_name || config.db.dynamodb.data_table_name };
-			    tableData.scan(params, function(err, data){
-			    	typeFilter = _.filter(data.Items, {type: type});
-			    	if (!err) {
-			    		for (var i = 0; i < data.Items.length; i++) {
-			    			if (data.Items[i].type == type) {
+				console.log(query)
+				function checKeyEmpty(obj){
+					for (var k in obj ){
+						if(obj[k].length == 0){
+							return true;
+						}else{
+							return false
+						}
+					}
+				}
+				if(_.isEmpty(query) || checKeyEmpty(query)){
+					var params = { 
+						TableName: process.env.dynamodb_data_table_name || config.db.dynamodb.data_table_name,
+					    ExpressionAttributeNames: {
+					        "#type": "type"
+					    },
+	   				 	ExpressionAttributeValues: {
+	   				 		":type": type
+	   				 	},
+	    				FilterExpression: "#type = :type"
+					};
+				    tableData.scan(params, function(err, data){
+				    	typeFilter = _.filter(data.Items, {type: type});
+				    	if (data.Count > 0) {
+				    		for (var i = 0; i < data.Items.length; i++) {
 								var tableMeta = new AWS.DynamoDB.DocumentClient();
 			    				var dataIdArr = [];
 			    				var responseArr = [];
@@ -160,12 +162,74 @@ const DB = {
 			    					})
 			    					callback(responseArr);
 			    				})	
-			    			}
-			    		}
-			    	}else{
-			    		// console.log(err);
-			    	}
-			    })
+				    		}
+				    	}else{
+				    		callback({})
+				    	}
+				    })
+				}else{
+					let FilterExpression = ["#type = :type"]
+					let ExpressionAttributeNames = {'#k': 'k', '#v': 'v', '#type': 'type'}
+					let ExpressionAttributeValues = {":type": type }
+					var i = 0; 
+					for ( var k in query ){
+						i++
+						Object.assign(ExpressionAttributeValues,{[":k" + i]: k, [":v" + i]: query[k]})
+						FilterExpression.push("(#k = :" + "k" + i + " and " + "#v = :v" + i + ")")
+					}
+					FilterExpression = FilterExpression.join( ' or ' )
+
+					var tableMeta = new AWS.DynamoDB.DocumentClient();
+					var metaParams = {
+				        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+					    ExpressionAttributeNames: ExpressionAttributeNames,
+	   				 	ExpressionAttributeValues: ExpressionAttributeValues,
+	    				FilterExpression: FilterExpression
+				    };	
+				    function uniqueCommons(arr){
+				    	if(_.isEmpty(_(arr).groupBy().pickBy(x => x.length > 1).keys().value())){
+				    		return arr
+				    	}else{
+				    		return _(arr).groupBy().pickBy(x => x.length > 1).keys().value()
+				    	}
+				    }
+				    function arrayPick(arr,arg){
+				    	return mapped = _.map(arr, _.partialRight(_.pick, arg));
+				    }
+				    function arrayObjectToString(arr, key){
+				    	return arr.map(function(item) {
+						    return item[key];
+						});
+				    }
+
+					tableMeta.scan(metaParams, function(err, data){	
+						if (data == null || data.Count == 0) {
+							console.log(err)
+							callback({});
+						} else {
+							let ar = arrayObjectToString(arrayPick(data.Items,['data_id']),'data_id')
+							var responseArr = [];
+							var metaArr = [];
+							var tableMeta = new AWS.DynamoDB.DocumentClient();
+							var metaParams = {
+						        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+						    };	
+			    			tableMeta.scan(metaParams, function(err, data){
+		    					_.each(uniqueCommons(ar), function(id){
+			    					var row = _.filter(data.Items, { data_id: id });
+			    					var build = {};
+			    					build.id = id;
+			    					build.type = type
+			    					_.each(row, function(record){
+			    						build[record.k] = record.v
+			    					})
+			    					responseArr.push(build);
+		    					})
+		    					callback(responseArr);
+			    			})
+						}    						
+					})
+				}
 			}
 			this.readOne = function(id, callback){
 				var tableData = new AWS.DynamoDB.DocumentClient();
@@ -199,38 +263,54 @@ const DB = {
 			    	}
 			    })
 			}
-			this.delete = function(id, status){
+			this.delete = function(id, type, status){
 				var tableMeta = new AWS.DynamoDB.DocumentClient();
 				var metaParams = {
 			        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
-			        Key:{
-			            "data_id": id
-			        }
+				    ExpressionAttributeNames: {
+				        "#data_id": "data_id"
+				    },
+   				 	ExpressionAttributeValues: {
+   				 		":id": id
+   				 	},
+    				FilterExpression: "#data_id = :id",
 			    };	
 				tableMeta.scan(metaParams, function(err, data){	
-    				for (var i = 0; i < data.Items.length; i++) {
-    					if (data.Items[i].data_id == id){
+					if (data.Count == 0 || data == null) {
+						console.log(err)
+					} else {
+						_.each(data.Items[i], function(item){
 							var tableMeta = new AWS.DynamoDB.DocumentClient();
 						    var metaParams = {
 						        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
 						        Key:{
-						            "_id": data.Items[i].id,
+						            "_id": item.data_id
 						        }
 						    };
 						    tableMeta.delete(metaParams, function(err, data) {
-						    })		    						
-    					}
-    				}
+						    	if (err) {
+						    		console.log(err)
+						    	} else {
+						    		console.log(data)
+						    	}
+						    })		
+						})
+					}    						
 				})
 				var tableData = new AWS.DynamoDB.DocumentClient();
 			    var dataParams = {
 			        TableName: process.env.dynamodb_data_table_name || config.db.dynamodb.data_table_name,
 			        Key:{
 			            "_id": id,
+			            "type": type
 			        }
 			    };
-
 			    tableData.delete(dataParams, function(err, data) {
+			    	if (err){
+			    		console.log(err)
+			    	} else {
+			    		console.log(data)
+			    	}
 			    })
 			}
 		},

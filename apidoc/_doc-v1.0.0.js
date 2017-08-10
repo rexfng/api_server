@@ -23,6 +23,22 @@
  *     }]
  */
 
+
+
+  /**
+ * @api {get} /api/v1/:type? GET ALL - Filter
+ * @apiName Data Get Filter
+ * @apiGroup Data Service
+ * @apiDescription Provide a query to filter results in a data type. ie. /api/v1/:type?first_name=Stephen&last_name=Curry&team=Golden+State
+ * @apiVersion 1.0.0
+ *
+ * @apiParam {Integer} _id  The mongodb id of the data.
+ * @apiParam {String/Object} value  Your custom key-value pair of your data.
+
+ */
+
+
+
  /**
  * @api {get} /api/v1/:type/:id GET ONE
  * @apiName Data Id
