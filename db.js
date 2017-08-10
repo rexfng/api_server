@@ -113,7 +113,6 @@ const DB = {
 			}
 			this.readAll = function(type, callback, query){
 				var tableData = new AWS.DynamoDB.DocumentClient();
-				console.log(query)
 				function checKeyEmpty(obj){
 					for (var k in obj ){
 						if(obj[k].length == 0){
@@ -150,14 +149,26 @@ const DB = {
 			    				}
 			    				typeFilter = _.map(typeFilter, '_id');
 			    				tableMeta.scan(metaParams, function(err, data){
+			    					console.log(typeFilter)
 			    					_.each(typeFilter, function(id){
+			    						// var obj = {}
+			    						// for (var i = 0; i < data.Items.length; i++) {
+			    						// 	if(data.Items[i].data_id == id){
+			    						// 		// console.log(data_id)
+			    						// 		obj[data.Items[i].k] = data.Items[i].v
+			    						// 	}
+			    						// }
+			    						// // console.log(obj)
+
 				    					var row = _.filter(data.Items, { data_id: id });
+				    					// console.log(row)
 				    					var build = {};
 				    					build.id = id;
 				    					build.type = type
 				    					_.each(row, function(record){
 				    						build[record.k] = record.v
 				    					})
+				    					// console.log(build)
 				    					responseArr.push(build);
 			    					})
 			    					callback(responseArr);
@@ -276,7 +287,7 @@ const DB = {
     				FilterExpression: "#data_id = :id",
 			    };	
 				tableMeta.scan(metaParams, function(err, data){	
-					if (data.Count == 0 || data == null) {
+					if (data == null || data.Count == 0 ) {
 						console.log(err)
 					} else {
 						_.each(data.Items[i], function(item){
