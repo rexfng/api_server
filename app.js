@@ -193,7 +193,7 @@ app.post('/api/v1/auth', function(req, res){
 				callback(session);			
 			})
 		}
-		var filter = _.filter(data, {email: req.body.email});
+		var filter = _.filter(data, {_id: req.body.user_id});
 		console.log(filter == "")
 		function isEmpty(obj) {
 		    for(var key in obj) {
@@ -257,6 +257,22 @@ app.delete('/api/v1/session/:id', function(req,res){
 	res.send({ssid_destroyed: true});
 
 })
+
+// app.delete('/api/v1/auth/', function(req,res){
+// 	dbQuery.readAll(req.params.type, function(data){
+// 		_.each(data, function(item){
+// 			dbQuery.delete(item.id, req.params.type, function(status){
+// 			});
+// 		})
+// 		res.status(200).send(
+// 			{ 
+// 				msg: "all data from type /" + req.params.type + " has been removed from the database successfully.",
+// 				is_deleted: true
+// 			}
+// 		);	
+// 	}, req.query)
+// });
+
 app.delete('/api/v1/:type/', function(req,res){
 	dbQuery.readAll(req.params.type, function(data){
 		_.each(data, function(item){
