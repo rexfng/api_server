@@ -30,6 +30,20 @@ const MetaSchema = new Schema({
 })
 var Data = mongoose.model("Data", DataSchema );
 var Meta = mongoose.model("Meta", MetaSchema );
+
+scanDB = function(param, results, callback) {
+	var tableMeta = new AWS.DynamoDB.DocumentClient();
+	tableMeta.scan(param, function(err, data){
+		results = results.concat(data.Items)
+		if(!_.isEmpty(data.LastEvaluatedKey)){
+			lastEvaluatedKey = data.LastEvaluatedKey;
+			param.ExclusiveStartKey = data.LastEvaluatedKey;
+			scanDB(param, results, callback)
+		} else {
+			callback(results);
+		}
+	})	
+}
 const DB = {
 	query:{
 		dynamodb: function(){
@@ -137,7 +151,6 @@ const DB = {
 				    	typeFilter = _.filter(data.Items, {type: type});
 				    	if (data.Count > 0) {
 				    		for (var i = 0; i < data.Items.length; i++) {
-								var tableMeta = new AWS.DynamoDB.DocumentClient();
 			    				var dataIdArr = [];
 			    				var responseArr = [];
 			    				var results = []
@@ -150,22 +163,6 @@ const DB = {
 								var metaParams = {
 							        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
 							    };	
-
-						    	scanDB = function(param, results, callback) {
-				    				tableMeta.scan(param, function(err, data){
-				    					// console.log(data)
-				    					results = results.concat(data.Items)
-				    					if(!_.isEmpty(data.LastEvaluatedKey)){
-				    						lastEvaluatedKey = data.LastEvaluatedKey;
-				    						param.ExclusiveStartKey = data.LastEvaluatedKey;
-				    						scanDB(param, results, callback)
-				    					} else {
-				    						// console.log(results)
-				    						callback(results);
-				    					}
-				    				})	
-						    	}
-
 						    	results = []
 						    	scanDB(metaParams, results, function(results){
 			    					_.each(typeFilter, function(id){
@@ -293,28 +290,25 @@ const DB = {
    				 	},
     				FilterExpression: "#data_id = :id",
 			    };	
-				tableMeta.scan(metaParams, function(err, data){	
-					if (data == null || data.Count == 0 ) {
-						console.log(err)
-					} else {
-						_.each(data.Items[i], function(item){
-							var tableMeta = new AWS.DynamoDB.DocumentClient();
-						    var metaParams = {
-						        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
-						        Key:{
-						            "_id": item.data_id
-						        }
-						    };
-						    tableMeta.delete(metaParams, function(err, data) {
-						    	if (err) {
-						    		console.log(err)
-						    	} else {
-						    		console.log(data)
-						    	}
-						    })		
-						})
-					}    						
-				})
+		    	results = []
+		    	scanDB(metaParams, results, function(results){
+		    		_.each(results, function(item){
+						var tableMeta = new AWS.DynamoDB.DocumentClient();
+					    var metaParams = {
+					        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+					        Key:{
+					            "_id": item._id
+					        }
+					    };
+					    tableMeta.delete(metaParams, function(err, data) {
+					    	if (err) {
+					    		console.log(err)
+					    	} else {
+					    		console.log(data)
+					    	}
+					    })	
+		    		})
+		    	})
 				var tableData = new AWS.DynamoDB.DocumentClient();
 			    var dataParams = {
 			        TableName: process.env.dynamodb_data_table_name || config.db.dynamodb.data_table_name,
