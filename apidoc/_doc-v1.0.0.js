@@ -204,7 +204,7 @@
 
 
  /**
- * @api {delete} /api/v1/session/:ssid DELETE
+ * @api {delete} /api/v1/auth/:ssid DELETE
  * @apiName Auth Destroy Session
  * @apiGroup Auth Service
  * @apiDescription Destroy server side session and clear SSID stores in cookies.
@@ -213,7 +213,9 @@
  * @apiParam {String} ssid  after user being authenticated, the unique ssid found in cookies.
  * @apiParamExample {json} Return example:
  *     {
-         "ssid_destroyed": true
+          "ssid_destroyed": true,
+          "ssid": "vni8WJ_iKvECEE1WtfHW9sHy",
+          "user_id": "598e0a9d7869b616dc62f608"
  *     }
  */
 
