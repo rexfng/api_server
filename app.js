@@ -177,51 +177,109 @@ app.post('/api/v1/auth', function(req, res){
 	} else {
 	    ip = req.ip;
 	};
-	dbQuery.readAll("user", function(data){
-		function generateSession(user_id, callback){
-			uid(18).then(function(uid){
-				session = {
-					'ssid': uid, 
-					'user': JSON.stringify({
-						'id': user_id,
-						'_self': config.app.root_url + ':' + config.app.port + '/api/v1' + '/user/' + user_id 
-					}),
-					'ip_address': req.ip,
-					'useragent': req.useragent,
-					'timestamp': ObjectID(data._id).getTimestamp()	
-				}
-				callback(session);			
-			})
-		}
-		var filter = _.filter(data, {_id: req.body.user_id});
-		console.log(filter == "")
-		function isEmpty(obj) {
-		    for(var key in obj) {
-		        if(obj.hasOwnProperty(key))
-		            return false;
-		    }
-		    return true;
-		}
-		if (isEmpty(filter)) {
-			res.status(200).send({is_authenticated: false});
-		}else{
-			var password = crypto.createHash("sha256").update(filter[0].salt + req.body.password).digest("base64");
-			if (filter[0].password == password) {
-				generateSession(filter[0].id, function(json){
-					dbQuery.create('session',json);
-					res.cookie('ssid', json.ssid);
-					res.status(200).send(
-						{
-							is_authenticated: true,
-							ssid: json.ssid,
-							user_id: filter[0].id
-						});	
-				});
-			} else {
-				res.status(200).send({is_authenticated: false});
+
+	if(!_.isEmpty(req.body.ssid)){
+		//CHECKing with session
+		dbQuery.readAll('session', function(data){
+			if(_.isEmpty(data)){
+				res.status(200).send({is_authenticated: false})
+			}else{
+				console.log(data[0].user.id)
+				res.status(200).send({
+					is_authenticated: true,
+					ssid: req.body.ssid,
+					user_id: JSON.parse(data[0].user).id
+				});				
 			}
+		},{ssid: req.body.ssid})		
+	}else{
+		if (!_.isEmpty(req.body.user_id) && !_.isEmpty(req.body.password) ) {
+			dbQuery.readOne(req.body.user_id, 'user', function(user){
+				var password = crypto.createHash("sha256").update(user.salt + req.body.password).digest("base64");
+				if(user.password == password){
+					function generateSession(user_id, callback){
+						uid(18).then(function(uid){
+							session = {
+								'ssid': uid, 
+								'user': JSON.stringify({
+									'id': user_id,
+									'_self': config.app.root_url + ':' + config.app.port + '/api/v1' + '/user/' + user_id 
+								}),
+								'ip_address': req.ip,
+								'useragent': req.useragent,
+								'timestamp': Date.now()	
+							}
+							callback(session);			
+						})
+					}
+					generateSession(user.id, function(json){
+						dbQuery.create('session',json);
+						res.cookie('ssid', json.ssid);
+						res.status(200).send(
+							{
+								is_authenticated: true,
+								ssid: json.ssid,
+								user_id: user.id
+							});	
+					});					
+				}else{
+					res.status(200).send({is_authenticated: false, msg: 'the password or the user_id is incorrect.'})
+				}
+			})
+		}else{
+			res.status(200).send({is_authenticated: false, msg: 'you must provide 1) an ssid or 2) user_id and password to authenticate this user.'})
 		}
-	}, req.query);
+	}
+
+
+	// if (req.body.ssid)
+
+
+	// dbQuery.readAll("user", function(data){
+	// 	function generateSession(user_id, callback){
+	// 		uid(18).then(function(uid){
+	// 			session = {
+	// 				'ssid': uid, 
+	// 				'user': JSON.stringify({
+	// 					'id': user_id,
+	// 					'_self': config.app.root_url + ':' + config.app.port + '/api/v1' + '/user/' + user_id 
+	// 				}),
+	// 				'ip_address': req.ip,
+	// 				'useragent': req.useragent,
+	// 				'timestamp': ObjectID(data._id).getTimestamp()	
+	// 			}
+	// 			callback(session);			
+	// 		})
+	// 	}
+	// 	var filter = _.filter(data, {_id: req.body.user_id});
+	// 	console.log(filter == "")
+	// 	function isEmpty(obj) {
+	// 	    for(var key in obj) {
+	// 	        if(obj.hasOwnProperty(key))
+	// 	            return false;
+	// 	    }
+	// 	    return true;
+	// 	}
+	// 	if (isEmpty(filter)) {
+	// 		res.status(200).send({is_authenticated: false});
+	// 	}else{
+	// 		var password = crypto.createHash("sha256").update(filter[0].salt + req.body.password).digest("base64");
+	// 		if (filter[0].password == password) {
+	// 			generateSession(filter[0].id, function(json){
+	// 				dbQuery.create('session',json);
+	// 				res.cookie('ssid', json.ssid);
+	// 				res.status(200).send(
+	// 					{
+	// 						is_authenticated: true,
+	// 						ssid: json.ssid,
+	// 						user_id: filter[0].id
+	// 					});	
+	// 			});
+	// 		} else {
+	// 			res.status(200).send({is_authenticated: false});
+	// 		}
+	// 	}
+	// }, req.query);
 })
 app.post('/api/v1/:type', function(req, res){
 

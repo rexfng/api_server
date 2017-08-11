@@ -48,6 +48,9 @@ arrayObjectToString = function(arr, key){
 }
 scanDB = function(target, param, results, callback) {
 	target.scan(param, function(err, data){
+		if(err){
+			console.log(err)
+		}
 		results = results.concat(data.Items)
 		if(!_.isEmpty(data.LastEvaluatedKey)){
 			lastEvaluatedKey = data.LastEvaluatedKey;
