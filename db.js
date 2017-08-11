@@ -162,8 +162,8 @@ const DB = {
 					var data = []
 				    // tableData.scan(params, function(err, data){
 				    scanDB(tableData, params, data, function(data){
-				    	typeFilter = _.filter(data, {type: type});
-				    	// if (data.Count > 0) {
+				    	if(!_.isEmpty(data)){
+					    	typeFilter = _.filter(data, {type: type});
 				    		for (var i = 0; i < data.length; i++) {
 			    				var dataIdArr = [];
 			    				var responseArr = [];
@@ -192,46 +192,12 @@ const DB = {
 			    					})
 			    					callback(responseArr);
 						    	})
-				    		// }
-				    	// }else{
-				    	// 	callback({})
-				    	}				    	
+					    	}				    	
+				    	} else {
+				    		callback({})
+				    	}
 				    })
-				    // 	typeFilter = _.filter(data.Items, {type: type});
-				    // 	if (data.Count > 0) {
-				    // 		for (var i = 0; i < data.Items.length; i++) {
-			    	// 			var dataIdArr = [];
-			    	// 			var responseArr = [];
-			    	// 			var results = []
-			    	// 			for (var i = 0; i < data.Items.length; i++) {
-			    	// 				var data_id = data.Items[i]._id;
-			    	// 				dataIdArr.push(data_id);
-			    	// 			}
-			    	// 			typeFilter = _.map(typeFilter, '_id');
 
-								// var metaParams = {
-							 //        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
-							 //    };	
-						  //   	results = []
-						  //   	var tableMeta = new AWS.DynamoDB.DocumentClient();
-						  //   	scanDB(tableMeta, metaParams, results, function(results){
-			    	// 				_.each(typeFilter, function(id){
-				    // 					var row = _.filter(results, { data_id: id });
-				    // 					var build = {};
-				    // 					build.id = id;
-				    // 					build.type = type
-				    // 					_.each(row, function(record){
-				    // 						build[record.k] = record.v
-				    // 					})
-				    // 					responseArr.push(build);
-			    	// 				})
-			    	// 				callback(responseArr);
-						  //   	})
-				    // 		}
-				    // 	}else{
-				    // 		callback({})
-				    // 	}
-				    // })
 				}else{
 					let FilterExpression = ["#type = :type"]
 					let ExpressionAttributeNames = {'#k': 'k', '#v': 'v', '#type': 'type'}
