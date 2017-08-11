@@ -288,33 +288,36 @@ const DB = {
    				 	ExpressionAttributeValues: {
    				 		":id": id
    				 	},
-    				FilterExpression: "#data_id = :id",
+    				FilterExpression: "#data_id = :id"
 			    };	
 		    	results = []
 		    	scanDB(metaParams, results, function(results){
-		    		_.each(results, function(item){
-						var tableMeta = new AWS.DynamoDB.DocumentClient();
-					    var metaParams = {
-					        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
-					        Key:{
-					            "_id": item._id
-					        }
-					    };
-					    tableMeta.delete(metaParams, function(err, data) {
-					    	if (err) {
-					    		console.log(err)
-					    	} else {
-					    		console.log(data)
-					    	}
-					    })	
-		    		})
+		    		if(!_.isEmpty(results)){
+			    		_.each(results, function(item){
+							var tableMeta = new AWS.DynamoDB.DocumentClient();
+						    var metaParams = {
+						        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+						        Key:{
+						            "_id": item._id
+						        }
+						    };
+						    tableMeta.delete(metaParams, function(err, data) {
+						    	if (err) {
+						    		console.log(err)
+						    	} else {
+						    		console.log(data)
+						    	}
+						    })	
+			    		})
+			    	}
 		    	})
+
 				var tableData = new AWS.DynamoDB.DocumentClient();
 			    var dataParams = {
 			        TableName: process.env.dynamodb_data_table_name || config.db.dynamodb.data_table_name,
 			        Key:{
 			            "_id": id,
-			            "type": type
+			           	"type": type
 			        }
 			    };
 			    tableData.delete(dataParams, function(err, data) {

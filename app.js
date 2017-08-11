@@ -273,7 +273,7 @@ app.delete('/api/v1/:type/', function(req,res){
 
 app.delete('/api/v1/:type/:id', function(req,res){
 	dbQuery.readOne(req.params.id, function(data){
-		dbQuery.delete(req.params.id, function(status){
+		dbQuery.delete(req.params.id, req.params.type ,function(status){
 			res.status(200).send(
 				{ 
 					[req.params.type]: data,
