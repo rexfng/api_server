@@ -183,19 +183,21 @@
  * @apiDescription Authenticate email and password pair and returning server side session. Also sets ssid to user cookie.
  * @apiVersion 1.0.0
  *
- * @apiParam {String} email  unique email that represents the user's identity.
+ * @apiParam {String} ssid  client can pass previously return ssid to authenticate, if abscent, it will evulate the password and user_id pair.
+ * @apiParam {String} user_id  unique user_id that represents the user's identity.
  * @apiParam {String} password  composed of sha256 hashes of 16 bites of random salt + user choice of passphrase.
  * @apiParamExample {json} Return example:
  *{
-    "is_authenticated": true,
-    "user": {
-        "id": "592a0fbf3f6e3d3a9665037f",
-        "_self": "http://localhost:3000/api/v1/user/592a0fbf3f6e3d3a9665037f"
+    {
+        "is_authenticated": true,
+        "ssid": "f4HU44kitKcmJSxTUpmORkEB",
+        "user_id": "5973b137d01c7c828ea824e4"
     }
  *}
   * @apiErrorExample {json} Error-Response:
  *     {
- *       "is_authenticated": false
+ *       "is_authenticated": false,
+         "msg": "you must provide 1) an ssid or 2) user_id and password to authenticate this user."
  *     }
  */
 
