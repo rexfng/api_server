@@ -237,11 +237,13 @@ app.post('/api/v1/:type', function(req, res){
 })
 app.post('/api/v1/:type/:id', function(req,res){
 	dbQuery.update(req.params.id, req.body);
-	res.status(200).send(
-		{ 
-			[req.params.type]: req.body,
-		 }
-	);
+	dbQuery.readOne(req.params.id, req.params.type, function(item){
+		res.status(200).send(
+			{ 
+				[req.params.type]: Object.assign(item, req.body),
+			 }
+		);
+	})
 });
 app.delete('/api/v1/session/:id', function(req,res){
 	dbQuery.update(req.params.id, 
