@@ -114,7 +114,7 @@ app.get('/api/v1/:type', function(req,res){
 	}, req.query);
 })
 app.get('/api/v1/:type/:id', function(req,res){
-	dbQuery.readOne(req.params.id, function(data){
+	dbQuery.readOne(req.params.id, req.params.type, function(data){
 		res.status(200).send(data);				
 	});	
 })
@@ -259,7 +259,6 @@ app.delete('/api/v1/:type/', function(req,res){
 	dbQuery.readAll(req.params.type, function(data){
 		_.each(data, function(item){
 			dbQuery.delete(item.id, req.params.type, function(status){
-				console.log(status)
 			});
 		})
 		res.status(200).send(
@@ -272,7 +271,7 @@ app.delete('/api/v1/:type/', function(req,res){
 });
 
 app.delete('/api/v1/:type/:id', function(req,res){
-	dbQuery.readOne(req.params.id, function(data){
+	dbQuery.readOne(req.params.id, req.params.type, function(data){
 		dbQuery.delete(req.params.id, req.params.type ,function(status){
 			res.status(200).send(
 				{ 

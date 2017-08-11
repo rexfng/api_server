@@ -239,36 +239,9 @@ const DB = {
 
  				   		})
 				    })
-					// tableMeta.scan(metaParams, function(err, data){	
-					// 	if (data == null || data.Count == 0) {
-					// 		console.log(err)
-					// 		callback({});
-					// 	} else {
-					// 		let ar = arrayObjectToString(arrayPick(data.Items,['data_id']),'data_id')
-					// 		var responseArr = [];
-					// 		var metaArr = [];
-					// 		var tableMeta = new AWS.DynamoDB.DocumentClient();
-					// 		var metaParams = {
-					// 	        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
-					// 	    };	
-			  //   			tableMeta.scan(metaParams, function(err, data){
-		   //  					_.each(uniqueCommons(ar), function(id){
-			  //   					var row = _.filter(data.Items, { data_id: id });
-			  //   					var build = {};
-			  //   					build.id = id;
-			  //   					build.type = type
-			  //   					_.each(row, function(record){
-			  //   						build[record.k] = record.v
-			  //   					})
-			  //   					responseArr.push(build);
-		   //  					})
-		   //  					callback(responseArr);
-			  //   			})
-					// 	}    						
-					// })
 				}
 			}
-			this.readOne = function(id, callback){
+			this.readOne = function(id, type, callback){
 				var tableMeta = new AWS.DynamoDB.DocumentClient();
 				var metaParams = {
 			        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
@@ -283,22 +256,15 @@ const DB = {
 		    	results = []
 		    	scanDB(tableMeta, metaParams, results, function(results){
 		    		if(!_.isEmpty(results)){
-			    		_.each(results, function(item){
-							var tableMeta = new AWS.DynamoDB.DocumentClient();
-						    var metaParams = {
-						        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
-						        Key:{
-						            "_id": item._id
-						        }
-						    };
-						    // tableMeta.delete(metaParams, function(err, data) {
-						    // 	if (err) {
-						    // 		console.log(err)
-						    // 	} else {
-						    // 		console.log(data)
-						    // 	}
-						    // })	
-			    		})
+						var build = {};
+						build.id = id;
+						build.type = type
+	    				_.each(results, function(result){
+	    					build[result.k] = result.v
+    					})
+    					callback(build)
+			    	}else{
+			    		callback({})
 			    	}
 		    	})
 			}
@@ -329,7 +295,7 @@ const DB = {
 						    	if (err) {
 						    		console.log(err)
 						    	} else {
-						    		console.log(data)
+						    		status(data)
 						    	}
 						    })	
 			    		})
@@ -388,7 +354,7 @@ const DB = {
 					}
 				})
 			}
-			this.readAll = function(type, callback){
+			this.readAll = function(type, callback, query){
 				Data.find({"type": type}, function(err, data){
 					var datas = [];
 					var dataIdArr = [];
@@ -410,7 +376,7 @@ const DB = {
 					})
 				})
 			}
-			this.readOne = function(id, callback){
+			this.readOne = function(id, type, callback){
 				Data.find({"_id": id}, function(err, data){
 					Meta.find({"data_id" : data[0]._id}, function(err, objs){	
 						var meta = {};
@@ -422,14 +388,14 @@ const DB = {
 					})
 				})
 			}
-			this.delete = function(id, callback){
+			this.delete = function(id, type, status){
 				Data.remove({_id: id}, function(err, response){
 					if (err) {
-						callback({is_deleted: false});
+						status({is_deleted: false});
 					}else{
 						Meta.remove({data_id: id}, function(err, response){
 							if (!err) {
-								callback({is_deleted: true});
+								status({is_deleted: true});
 							}
 						})
 					}
