@@ -115,6 +115,7 @@ const DB = {
 			    	jsonKeys.push(key);
 			    }
 			    tableMeta.scan(metaParams, function(err, data){
+			    	console.log(err)
 			    	for (var i = 0; i < data.Items.length; i++) {
 			    		var filter = _.filter(data.Items, {data_id: id});
 			    		if( data.Items[i].data_id == id){

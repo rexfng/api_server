@@ -73,26 +73,33 @@ if (which_DB == "mongodb") {
     var dbQuery = new DB.query.dynamodb;
 }
 
-io.on('connection', function (socket) {			
+io.on('connection', function (socket) {		
+	console.log( socket.rooms[Object.keys(socket.rooms)[0]])
+	socket.on('join', function(data){
+		socket.join(data.data.room);
+		console.log('joined ' + data.data.room) 
+		console.log(data)		
+	})	
+	socket.on('leave', function(data){
+		socket.leave(data.room);
+		console.log('left ' + data.room)
+		console.log(data)	
+	})
+	socket.on('broadcast', function(data){
+		io.broadcast.to(data.data.room).emit(data.on, data.data);
+		console.log(data)
+		console.log("broadcast");
+	})
+
 	socket.on('emit', function(data){
-		var currentRoom = socket.rooms[Object.keys(socket.rooms)[0]];
-		if (currentRoom !== data.room) {
-			socket.join(data.room);
-			console.log('joined room!');
-		}
-		if (data.method == "broadcast") {
-			io.broadcast.to(data.room).emit(data.on, data.data);
-			console.log("broadcast");
-			console.log(socket);
-		} else {
-			io.to(data.room).emit(data.on, data.data);
-			console.log("emit");
-			console.log(socket);
-		}
+		io.to(data.data.room).emit(data.on, data.data);
+		console.log(data)
+		console.log("emitted " + data.on);	
 		if (data.is_save) {
 			dbQuery.create(data.type, data.data);		
 		}
 	})
+
 	socket.once('disconnect', function(data){
 	    io.emit('count', {
 	        number: io.engine.clientsCount,
@@ -166,7 +173,11 @@ app.post('/api/v1/user', function(req, res){
 	var hash = crypto.createHash("sha256").update(randomSalt + user.password).digest("base64");
 		user.password = hash;
 	dbQuery.create("user", user);
-	res.status(200).send({user: req.body});	
+	dbQuery.readAll('user', function(data){
+		res.status(200).send(
+			{user: data[0]}
+		)
+	}, req.query)
 })
 app.post('/api/v1/auth', function(req, res){
 	var ip;
@@ -180,14 +191,14 @@ app.post('/api/v1/auth', function(req, res){
 
 	if(!_.isEmpty(req.body.ssid)){
 		//CHECKing with session
-		dbQuery.readAll('session', function(data){
+		dbQuery.readAll('auth', function(data){
 			if(_.isEmpty(data)){
 				res.status(200).send({is_authenticated: false})
 			}else{
+				console.log(data[0])
 				res.status(200).send({
 					is_authenticated: true,
-					ssid: req.body.ssid,
-					user_id: JSON.parse(data[0].user).id
+					ssid: req.body.ssid
 				});				
 			}
 		},{ssid: req.body.ssid})		
@@ -213,7 +224,7 @@ app.post('/api/v1/auth', function(req, res){
 						})
 					}
 					generateSession(user.id, function(json){
-						dbQuery.create('session',json);
+						dbQuery.create('auth',json);
 						res.cookie('ssid', json.ssid);
 						res.status(200).send(
 							{
@@ -243,6 +254,30 @@ app.post('/api/v1/:type', function(req, res){
 		}, req.query)
 	}
 })
+
+app.post('/api/v1/user/:id', function(req,res){
+	if(!_.isEmpty(req.body.password)){
+		dbQuery.readOne(req.params.id, req.params.type, function(item){
+			req.body.password = crypto.createHash("sha256").update(item.salt + req.body.password).digest("base64");
+			dbQuery.update(req.params.id, req.body);
+			res.status(200).send(
+				{ 
+					user: Object.assign(item, req.body),
+				 }
+			);			
+		})
+	}else{
+		dbQuery.readOne(req.params.id, req.params.type, function(item){
+			dbQuery.update(req.params.id, req.body);
+			res.status(200).send(
+				{ 
+					user: Object.assign(item, req.body),
+				 }
+			);			
+		})
+	}
+})
+
 app.post('/api/v1/:type/:id', function(req,res){
 	dbQuery.update(req.params.id, req.body);
 	dbQuery.readOne(req.params.id, req.params.type, function(item){
@@ -255,11 +290,12 @@ app.post('/api/v1/:type/:id', function(req,res){
 });
 
 app.delete('/api/v1/auth/:id', function(req,res){
-	dbQuery.readAll('session', function(data){
+	dbQuery.readAll('auth', function(data){
 		console.log(data[0].id)
+		// console.log(JSON.parse(data[0]).id)
 		dbQuery.update(data[0].id, 
 			{ 
-				'ssid': '',
+				'ssid': '-',
 				'ssid_destroyed_timestamp' : new Date().getTime()
 			}
 		);
