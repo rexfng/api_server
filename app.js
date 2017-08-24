@@ -177,7 +177,7 @@ app.post('/api/v1/user', function(req, res){
 		res.status(200).send(
 			{user: data[0]}
 		)
-	}, req.query)
+	}, {email: req.body.email})
 })
 app.post('/api/v1/auth', function(req, res){
 	var ip;
@@ -251,7 +251,7 @@ app.post('/api/v1/:type', function(req, res){
 			res.status(200).send(
 				{[req.params.type]: Object.assign(req.body, { id: lastID.id })}
 			)
-		}, req.query)
+		}, req.body)
 	}
 })
 
