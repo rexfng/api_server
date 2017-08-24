@@ -230,7 +230,7 @@ app.post('/api/v1/auth', function(req, res){
 					}
 					generateSession(user.id, function(json){
 						dbQuery.create('auth',json);
-						res.cookie('ssid', json.ssid);
+						res.cookie('ssid', json.ssid, { httpOnly: false });
 						res.status(200).send(
 							{
 								is_authenticated: true,
