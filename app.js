@@ -167,17 +167,22 @@ app.post('/api/v1/sms', function(req, res){
 	res.status(200).send({sms: req.body});	
 })
 app.post('/api/v1/user', function(req, res){
-	var user = Object.assign({},req.body);
-	var randomSalt = crypto.randomBytes(16).toString('hex');
-		user.salt = randomSalt;
-	var hash = crypto.createHash("sha256").update(randomSalt + user.password).digest("base64");
-		user.password = hash;
-	dbQuery.create("user", user);
-	dbQuery.readAll('user', function(data){
-		res.status(200).send(
-			{user: data[0]}
-		)
-	}, {email: req.body.email})
+	if (!_.isEmpty(req.body.password)) {
+		var user = Object.assign({},req.body);
+		var randomSalt = crypto.randomBytes(16).toString('hex');
+			user.salt = randomSalt;
+		var hash = crypto.createHash("sha256").update(randomSalt + user.password).digest("base64");
+			user.password = hash;
+		dbQuery.create("user", user);
+		dbQuery.readAll('user', function(data){
+			res.status(200).send(
+				{user: data[0]}
+			)
+		}, {password: hash})		
+	}else{
+		res.status(200).send({msg: "user must contain a password key."})
+	}
+
 })
 app.post('/api/v1/auth', function(req, res){
 	var ip;
