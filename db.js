@@ -126,11 +126,11 @@ const DB = {
 							    }
 							};
 							tableMeta.put(metaParams, function(err, data) {
+								loopCounter += 1;		
+								if(loopCounter == lastLoop){
+									returnRead();
+								}		
 							});
-							loopCounter += 1;				
-							if(loopCounter == lastLoop){
-								returnRead();
-							}
 						}
 				    }
 				});							
