@@ -115,7 +115,6 @@ const DB = {
 				    	lastLoop = Object.keys(json).length;
 				    	loopCounter = 0;
 						for (var key in json){	
-							loopCounter += 1;				
 							var tableMeta = new AWS.DynamoDB.DocumentClient();
 							var metaParams = {
 							    TableName:process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
@@ -128,6 +127,7 @@ const DB = {
 							};
 							tableMeta.put(metaParams, function(err, data) {
 							});
+							loopCounter += 1;				
 							if(loopCounter == lastLoop){
 								returnRead();
 							}
