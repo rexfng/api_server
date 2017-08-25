@@ -83,6 +83,33 @@ const DB = {
 				        "type": type,
 				    }
 				};
+				returnRead = function(){
+					var tableMetaRead = new AWS.DynamoDB.DocumentClient();
+					var metaParamsRead = {
+				        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+					    ExpressionAttributeNames: {
+					        "#data_id": "data_id"
+					    },
+	   				 	ExpressionAttributeValues: {
+	   				 		":id": dataParams.Item._id
+	   				 	},
+	    				FilterExpression: "#data_id = :id"
+				    };	
+			    	results = []
+			    	scanDB(tableMetaRead, metaParamsRead, results, function(results){
+			    		if(!_.isEmpty(results)){
+							var build = {};
+							build.id = dataParams.Item._id;
+							build.type = type
+		    				_.each(results, function(result){
+		    					build[result.k] = result.v
+	    					})
+	    					callback(build)
+				    	}else{
+				    		callback({})
+				    	}
+			    	})
+				}
 				tableData.put(dataParams, function(err, data) {
 				    if (!err){
 				    	lastLoop = Object.keys(json).length;
@@ -100,34 +127,10 @@ const DB = {
 							    }
 							};
 							tableMeta.put(metaParams, function(err, data) {
-								if(loopCounter == lastLoop){
-									var tableMetaRead = new AWS.DynamoDB.DocumentClient();
-									var metaParamsRead = {
-								        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
-									    ExpressionAttributeNames: {
-									        "#data_id": "data_id"
-									    },
-					   				 	ExpressionAttributeValues: {
-					   				 		":id": dataParams.Item._id
-					   				 	},
-					    				FilterExpression: "#data_id = :id"
-								    };	
-							    	results = []
-							    	scanDB(tableMetaRead, metaParamsRead, results, function(results){
-							    		if(!_.isEmpty(results)){
-											var build = {};
-											build.id = dataParams.Item._id;
-											build.type = type
-						    				_.each(results, function(result){
-						    					build[result.k] = result.v
-					    					})
-					    					callback(build)
-								    	}else{
-								    		callback({})
-								    	}
-							    	})
-								}
 							});
+							if(loopCounter == lastLoop){
+								returnRead();
+							}
 						}
 				    }
 				});							
