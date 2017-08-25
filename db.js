@@ -74,7 +74,7 @@ checKeyEmpty = function(obj){
 const DB = {
 	query:{
 		dynamodb: function(){
-			this.create = function(type, json){
+			this.create = function(type, json, callback){
 				var tableData = new AWS.DynamoDB.DocumentClient();
 				var dataParams = {
 				    TableName:process.env.dynamodb_data_table_name || config.db.dynamodb.data_table_name,
@@ -100,7 +100,32 @@ const DB = {
 							});
 						}
 				    }
-				});			
+					var tableMetaRead = new AWS.DynamoDB.DocumentClient();
+					var metaParamsRead = {
+				        TableName: process.env.dynamodb_meta_table_name || config.db.dynamodb.meta_table_name,
+					    ExpressionAttributeNames: {
+					        "#data_id": "data_id"
+					    },
+	   				 	ExpressionAttributeValues: {
+	   				 		":id": dataParams.Item._id
+	   				 	},
+	    				FilterExpression: "#data_id = :id"
+				    };	
+			    	results = []
+			    	scanDB(tableMetaRead, metaParamsRead, results, function(results){
+			    		if(!_.isEmpty(results)){
+							var build = {};
+							build.id = dataParams.Item._id;
+							build.type = type
+		    				_.each(results, function(result){
+		    					build[result.k] = result.v
+	    					})
+	    					callback(build)
+				    	}else{
+				    		callback({})
+				    	}
+			    	})
+				});							
 			};
 			this.update = function(id, json){	
 				var tableMeta = new AWS.DynamoDB.DocumentClient();

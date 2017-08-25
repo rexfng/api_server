@@ -96,7 +96,9 @@ io.on('connection', function (socket) {
 		console.log(data)
 		console.log("emitted " + data.on);	
 		if (data.is_save) {
-			dbQuery.create(data.type, data.data);		
+			dbQuery.create(data.type, data.data, function(data){
+				//callback
+			});		
 		}
 	})
 
@@ -173,12 +175,9 @@ app.post('/api/v1/user', function(req, res){
 			user.salt = randomSalt;
 		var hash = crypto.createHash("sha256").update(randomSalt + user.password).digest("base64");
 			user.password = hash;
-		dbQuery.create("user", user);
-		dbQuery.readAll('user', function(data){
-			res.status(200).send(
-				{user: data[0]}
-			)
-		}, {password: hash})		
+		dbQuery.create("user", user, function(data){
+			res.status(200).send(data);
+		});		
 	}else{
 		res.status(200).send({msg: "user must contain a password key."})
 	}
@@ -200,7 +199,6 @@ app.post('/api/v1/auth', function(req, res){
 			if(_.isEmpty(data)){
 				res.status(200).send({is_authenticated: false})
 			}else{
-				console.log(data[0])
 				res.status(200).send({
 					is_authenticated: true,
 					ssid: req.body.ssid
@@ -229,7 +227,7 @@ app.post('/api/v1/auth', function(req, res){
 						})
 					}
 					generateSession(user.id, function(json){
-						dbQuery.create('auth',json);
+						dbQuery.create('auth',json, function(data){
 						res.cookie('ssid', json.ssid, { httpOnly: false });
 						res.status(200).send(
 							{
@@ -237,6 +235,7 @@ app.post('/api/v1/auth', function(req, res){
 								ssid: json.ssid,
 								user_id: user.id
 							});	
+						});
 					});					
 				}else{
 					res.status(200).send({is_authenticated: false, msg: 'the password or the user_id is incorrect.'})
@@ -250,13 +249,14 @@ app.post('/api/v1/auth', function(req, res){
 app.post('/api/v1/:type', function(req, res){
 
 	if (req.params.type !== 'auth') {
-		dbQuery.create(req.params.type, req.body);
-		dbQuery.readAll(req.params.type, function(data){
-			var lastID = _.maxBy(data, function(o) { return o.id } );
-			res.status(200).send(
-				{[req.params.type]: Object.assign(req.body, { id: lastID.id })}
-			)
-		}, req.body)
+		dbQuery.create(req.params.type, req.body, function(dataCreated){
+			dbQuery.readAll(req.params.type, function(data){
+				var lastID = _.maxBy(data, function(o) { return o.id } );
+				res.status(200).send(
+					{[req.params.type]: Object.assign(req.body, { id: lastID.id })}
+				)
+			}, req.body)
+		});
 	}
 })
 
