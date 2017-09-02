@@ -145,14 +145,14 @@ app.post('/api/v1/mailer', function(req, res){
 	    html: req.body.html // html body
 	};
 	// send mail with defined transport object
-	transporter.sendMail(mailOptions, (error, info), function(){
-	    if (error) {
-	        console.log(error);
-	    }else{
-	   		console.log('Message %s sent: %s', info.messageId, info.response);
-	    }
+	transporter.sendMail(mailOptions, function(error, info){
+	    // if (error) {
+	    //     console.log(error);
+	    // }else{
+	   	// 	console.log('Message %s sent: %s', info.messageId, info.response);
+	    // }
+		res.status(200).send({email: req.body});	
 	});
-	res.status(200).send({email: req.body});	
 })
 app.post('/api/v1/sms', function(req, res){
 	var client = new twilio(
