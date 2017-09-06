@@ -29,6 +29,12 @@ const assert = require('assert-callback');
 const logger = require('morgan');
 const _ = require('lodash');
 const DB = require('./db').DB;
+var which_DB = process.env.which_DB || config.db.which_DB;
+if (which_DB == "mongodb") {
+	var dbQuery = new DB.query.mongodb;
+}else if (which_DB == "dynamodb") {
+    var dbQuery = new DB.query.dynamodb;
+}
 
 	// dbQuery.readAll("chat", callback());
 	// dbQuery.update("WVFPDgS7HcPCF4WRAAAC", {first_name: "John", last_name: "Wall"});
@@ -65,12 +71,6 @@ if (is_jwk == 'true') {
 	app.use(jwtCheck);	
 }else{
 	console.log('jwkCheck is disable, api endpoint is not secured');
-}
-var which_DB = process.env.which_DB || config.db.which_DB;
-if (which_DB == "mongodb") {
-	var dbQuery = new DB.query.mongodb;
-}else if (which_DB == "dynamodb") {
-    var dbQuery = new DB.query.dynamodb;
 }
 
 io.on('connection', function (socket) {		

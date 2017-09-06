@@ -13,23 +13,28 @@ const AWS = require("aws-sdk");
           endpoint: 
           	"https://dynamodb." + (process.env.aws_dynamodb_region || config.db.dynamodb.aws_dynamodb_region) + ".amazonaws.com"
       });
-const mongoose = require('mongoose');
-	  mongoose.connect(process.env.mongodb_database_url || config.db.mongodb.database_url);
-const connection = mongoose.connection;
-const Schema = mongoose.Schema;
-const ObjectID = require("bson-objectid");
-const DataSchema = new Schema({
-		id          : Schema.ObjectId,
-		type		: String,
-})
-const MetaSchema = new Schema({
-		id          : Schema.ObjectId,
-		data_id		: Schema.ObjectId,
-		key			: String,
-		value		: { type: [String], index: true }
-})
-var Data = mongoose.model("Data", DataSchema );
-var Meta = mongoose.model("Meta", MetaSchema );
+
+var which_DB = process.env.which_DB || config.db.which_DB;
+
+if (which_DB == "mongodb") {
+	const mongoose = require('mongoose');
+		  mongoose.connect(process.env.mongodb_database_url || config.db.mongodb.database_url);
+	const connection = mongoose.connection;
+	const Schema = mongoose.Schema;
+	const ObjectID = require("bson-objectid");
+	const DataSchema = new Schema({
+			id          : Schema.ObjectId,
+			type		: String,
+	})
+	const MetaSchema = new Schema({
+			id          : Schema.ObjectId,
+			data_id		: Schema.ObjectId,
+			key			: String,
+			value		: { type: [String], index: true }
+	})
+	var Data = mongoose.model("Data", DataSchema );
+	var Meta = mongoose.model("Meta", MetaSchema );
+}
 
 uniqueCommons = function(arr){
 	if(_.isEmpty(_(arr).groupBy().pickBy(x => x.length > 1).keys().value())){
