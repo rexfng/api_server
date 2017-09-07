@@ -1,3 +1,5 @@
+*mongodb's function is not up to date. Use dynamodb for now.
+
 # Introduction
 The repo has 2 major purpose. 1) it works as a RESTful endpoint powered by node and express serving either [mongodb](https://mlab.com/) (mongoose) or [aws dynamodb](https://aws.amazon.com/dynamodb/). 2) perform server sides duty such as sending email/sms, hosting websocket connection, and generate server-side cookie-session. For more detail please see api [documentation](https://reach-api-server.herokuapp.com/) from root of the project.
 
