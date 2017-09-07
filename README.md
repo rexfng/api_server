@@ -34,8 +34,10 @@ To secure the endpoint, set `is_jwk` to true and apply credentials from [Auth0](
 ### To-Do
 1. Mongodb's dbquery function is not up-to-date to dynamodb, use dynamodb for now.
 2. a separate project to create a cms that utilizes this repo
-3. rethink about auth endpoint, maybe use jwt or other security mechnaism instead.
 
+### Discussion
+1. rethink about auth endpoint, maybe use jwt or other security mechnaism instead.
+2. without the websocket service, this repo can be stateless which makes this project very scalable. For serious project, you might want to consider host websocket elsewhere. For small project it's convenient to keep websocket here.
 
 ### Dev Log
 1.0.0 Create basic functionality for the api_server endpoint
