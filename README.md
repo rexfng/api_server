@@ -1,5 +1,8 @@
 # Introduction
-The repo has 2 major purpose. 1) it works as a RESTful endpoint powered by node and express serving either mongodb (mongoose) or aws dynamodb. 2) perform server sides duty such as sending email/sms, hosting websocket connection, and generate server-side cookie-session. For more detail please see api documentation from root of the project.
+The repo has 2 major purpose. 1) it works as a RESTful endpoint powered by node and express serving either [mongodb](https://mlab.com/) (mongoose) or [aws dynamodb](https://aws.amazon.com/dynamodb/). 2) perform server sides duty such as sending email/sms, hosting websocket connection, and generate server-side cookie-session. For more detail please see api [documentation](https://reach-api-server.herokuapp.com/) from root of the project.
+
+## Securing the Endpoint
+To secure the endpoint, set `is_jwk` to true and apply credentials from [Auth0](https://auth0.com/) or other similar services/
 
 ## Setup Instructions
 1. rename `env/_config.json` to `env/{environment}.json` or setup the following environment variables. development.json is used by default
