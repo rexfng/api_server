@@ -15,13 +15,13 @@ const AWS = require("aws-sdk");
       });
 
 var which_DB = process.env.which_DB || config.db.which_DB;
+const ObjectID = require("bson-objectid");
 
 if (which_DB == "mongodb") {
 	const mongoose = require('mongoose');
 		  mongoose.connect(process.env.mongodb_database_url || config.db.mongodb.database_url);
 	const connection = mongoose.connection;
 	const Schema = mongoose.Schema;
-	const ObjectID = require("bson-objectid");
 	const DataSchema = new Schema({
 			id          : Schema.ObjectId,
 			type		: String,
@@ -88,6 +88,7 @@ const DB = {
 				        "type": type,
 				    }
 				};
+				console.log(type)
 				returnRead = function(){
 					var tableMetaRead = new AWS.DynamoDB.DocumentClient();
 					var metaParamsRead = {
