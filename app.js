@@ -19,7 +19,6 @@ const server = app.listen(port, function(){
 const ObjectID = require("bson-objectid");
 const nodemailer = require('nodemailer');
 const twilio = require('twilio');
-const io = require('socket.io')(server);
 const jwt = require('express-jwt');
 const jwks = require('jwks-rsa');
 const assert = require('assert-callback');
@@ -69,43 +68,6 @@ if (is_jwk == 'true') {
 }else{
 	console.log('jwkCheck is disable, api endpoint is not secured');
 }
-
-io.on('connection', function (socket) {		
-	console.log( socket.rooms[Object.keys(socket.rooms)[0]])
-	socket.on('join', function(data){
-		socket.join(data.data.room);
-		console.log('joined ' + data.data.room) 
-		console.log(data)		
-	})	
-	socket.on('leave', function(data){
-		socket.leave(data.room);
-		console.log('left ' + data.room)
-		console.log(data)	
-	})
-	socket.on('broadcast', function(data){
-		io.broadcast.to(data.data.room).emit(data.on, data.data);
-		console.log(data)
-		console.log("broadcast");
-	})
-
-	socket.on('emit', function(data){
-		io.to(data.data.room).emit(data.on, data.data);
-		console.log(data)
-		console.log("emitted " + data.on);	
-		if (data.is_save) {
-			dbQuery.create(data.type, data.data, function(data){
-				//callback
-			});		
-		}
-	})
-
-	socket.once('disconnect', function(data){
-	    io.emit('count', {
-	        number: io.engine.clientsCount,
-	        disconnect: "1"
-	    });		
-	})
-});
 
 app.get('/api/v1/:type', function(req,res){
 	// console.log(req.params.type);

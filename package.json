@@ -30,7 +30,6 @@
     "request": "^2.81.0",
     "request-promise": "^4.2.1",
     "s3": "^4.4.0",
-    "socket.io": "^2.0.1",
     "socket.io-client": "^2.0.1",
     "twilio": "^3.3.0",
     "uid-safe": "^2.1.4",
