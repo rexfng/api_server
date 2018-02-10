@@ -20,10 +20,8 @@ const ObjectID = require("bson-objectid");
 const nodemailer = require('nodemailer');
 const twilio = require('twilio');
 const io = require('socket.io')(server);
-const uid = require('uid-safe')
 const jwt = require('express-jwt');
 const jwks = require('jwks-rsa');
-const crypto = require("crypto");
 const assert = require('assert-callback');
 const logger = require('morgan');
 const _ = require('lodash');
@@ -161,34 +159,17 @@ app.post('/api/v1/sms', function(req, res){
 	.then((message) => console.log(message.sid));
 	res.status(200).send({sms: req.body});	
 })
-app.post('/api/v1/user', function(req, res){
-	if (!_.isEmpty(req.body.password)) {
-		var user = Object.assign({},req.body);
-		var randomSalt = crypto.randomBytes(16).toString('hex');
-			user.salt = randomSalt;
-		var hash = crypto.createHash("sha256").update(randomSalt + user.password).digest("base64");
-			user.password = hash;
-		dbQuery.create("user", user, function(data){
-			res.status(200).send(data);
-		});		
-	}else{
-		res.status(200).send({msg: "user must contain a password key."})
-	}
 
-})
 
 app.post('/api/v1/:type', function(req, res){
-
-	if (req.params.type !== 'auth') {
-		dbQuery.create(req.params.type, req.body, function(dataCreated){
-			dbQuery.readAll(req.params.type, function(data){
-				var lastID = _.maxBy(data, function(o) { return o.id } );
-				res.status(200).send(
-					{[req.params.type]: Object.assign(req.body, { id: lastID.id })}
-				)
-			}, req.body)
-		});
-	}
+	dbQuery.create(req.params.type, req.body, function(dataCreated){
+		dbQuery.readAll(req.params.type, function(data){
+			var lastID = _.maxBy(data, function(o) { return o.id } );
+			res.status(200).send(
+				{[req.params.type]: Object.assign(req.body, { id: lastID.id })}
+			)
+		}, req.body)
+	});
 })
 
 app.post('/api/v1/user/:id', function(req,res){
@@ -225,21 +206,6 @@ app.post('/api/v1/:type/:id', function(req,res){
 	})
 });
 
-app.delete('/api/v1/auth/:id', function(req,res){
-	dbQuery.readAll('auth', function(data){
-		console.log(data[0].id)
-		// console.log(JSON.parse(data[0]).id)
-		dbQuery.update(data[0].id, 
-			{ 
-				'ssid': '-',
-				'ssid_destroyed_timestamp' : new Date().getTime()
-			}
-		);
-		res.status(200);
-		res.clearCookie("ssid");
-		res.send({ssid_destroyed: true, ssid: req.params.id, user_id: JSON.parse(data[0].user).id});
-	},{ssid: req.params.id})		
-});
 
 app.delete('/api/v1/:type/', function(req,res){
 	dbQuery.readAll(req.params.type, function(data){
