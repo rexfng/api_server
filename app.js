@@ -24,7 +24,6 @@ const uid = require('uid-safe')
 const jwt = require('express-jwt');
 const jwks = require('jwks-rsa');
 const crypto = require("crypto");
-const shortid = require('shortid');
 const assert = require('assert-callback');
 const logger = require('morgan');
 const _ = require('lodash');
@@ -109,12 +108,6 @@ io.on('connection', function (socket) {
 	    });		
 	})
 });
-
-app.get('/api/v1/shortid', function(req,res){
-	res.status(200).send(
-		{ uuid: shortid.generate() }
-	);
-})
 
 app.get('/api/v1/:type', function(req,res){
 	// console.log(req.params.type);
