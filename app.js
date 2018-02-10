@@ -176,69 +176,7 @@ app.post('/api/v1/user', function(req, res){
 	}
 
 })
-app.post('/api/v1/auth', function(req, res){
-	var ip;
-	if (req.headers['x-forwarded-for']) {
-	    ip = req.headers['x-forwarded-for'].split(",")[0];
-	} else if (req.connection && req.connection.remoteAddress) {
-	    ip = req.connection.remoteAddress;
-	} else {
-	    ip = req.ip;
-	};
 
-	if(!_.isEmpty(req.body.ssid)){
-		//CHECKing with session
-		dbQuery.readAll('auth', function(data){
-			if(_.isEmpty(data)){
-				res.status(200).send({is_authenticated: false})
-			}else{
-				res.status(200).send({
-					is_authenticated: true,
-					ssid: req.body.ssid
-				});				
-			}
-		},{ssid: req.body.ssid})		
-	}else{
-		//CHECKING with password user_id pair
-		if (!_.isEmpty(req.body.user_id) && !_.isEmpty(req.body.password) ) {
-			dbQuery.readOne(req.body.user_id, 'user', function(user){
-				var password = crypto.createHash("sha256").update(user.salt + req.body.password).digest("base64");
-				if(user.password == password){
-					function generateSession(user_id, callback){
-						uid(18).then(function(uid){
-							session = {
-								'ssid': uid, 
-								'user': JSON.stringify({
-									'id': user_id,
-									'_self': config.app.root_url + ':' + config.app.port + '/api/v1' + '/user/' + user_id 
-								}),
-								'ip_address': req.ip,
-								'useragent': req.useragent,
-								'timestamp': new Date().getTime()
-							}
-							callback(session);			
-						})
-					}
-					generateSession(user.id, function(json){
-						dbQuery.create('auth',json, function(data){
-						res.cookie('ssid', json.ssid, { httpOnly: false });
-						res.status(200).send(
-							{
-								is_authenticated: true,
-								ssid: json.ssid,
-								user_id: user.id
-							});	
-						});
-					});					
-				}else{
-					res.status(200).send({is_authenticated: false, msg: 'the password or the user_id is incorrect.'})
-				}
-			})
-		}else{
-			res.status(200).send({is_authenticated: false, msg: 'you must provide 1) an ssid or 2) user_id and password to authenticate this user.'})
-		}
-	}
-})
 app.post('/api/v1/:type', function(req, res){
 
 	if (req.params.type !== 'auth') {
