@@ -88,7 +88,6 @@ const DB = {
 				        "type": type,
 				    }
 				};
-				console.log(type)
 				returnRead = function(){
 					var tableMetaRead = new AWS.DynamoDB.DocumentClient();
 					var metaParamsRead = {
@@ -111,8 +110,6 @@ const DB = {
 		    					build[result.k] = result.v
 	    					})
 	    					callback(build)
-				    	}else{
-				    		callback({})
 				    	}
 			    	})
 				}
@@ -226,7 +223,7 @@ const DB = {
 				    					var row = _.filter(results, { data_id: id });
 				    					var build = {};
 				    					build.id = id;
-				    					build.type = type
+				    					// build.type = type
 				    					_.each(row, function(record){
 				    						build[record.k] = record.v
 				    					})
@@ -273,7 +270,7 @@ const DB = {
 		    					var row = _.filter(data, { data_id: id });
 		    					var build = {};
 		    					build.id = id;
-		    					build.type = type
+		    					// build.type = type
 		    					_.each(row, function(record){
 		    						build[record.k] = record.v
 		    					})
@@ -301,7 +298,7 @@ const DB = {
 		    		if(!_.isEmpty(results)){
 						var build = {};
 						build.id = id;
-						build.type = type
+						// build.type = type
 	    				_.each(results, function(result){
 	    					build[result.k] = result.v
     					})
@@ -338,7 +335,7 @@ const DB = {
 						    	if (err) {
 						    		console.log(err)
 						    	} else {
-						    		status(data)
+						    		console.log(data)
 						    	}
 						    })	
 			    		})
@@ -349,8 +346,7 @@ const DB = {
 			    var dataParams = {
 			        TableName: process.env.dynamodb_data_table_name || config.db.dynamodb.data_table_name,
 			        Key:{
-			            "_id": id,
-			           	"type": type
+			            "_id": id
 			        }
 			    };
 			    tableData.delete(dataParams, function(err, data) {
@@ -360,6 +356,25 @@ const DB = {
 			    		console.log(data)
 			    	}
 			    })
+			}
+			this.listCollections = function(callback){
+				var tableData = new AWS.DynamoDB.DocumentClient();
+				var params = { 
+					TableName: process.env.dynamodb_data_table_name || config.db.dynamodb.data_table_name
+				};
+				var data = []	
+				scanDB(tableData, params, data, function(data){
+					var unique = _.uniqBy(data, 'type');
+					var metas = []
+					_.each(unique, function(e){
+						var meta = {
+							"collection": e.type,
+							"count": _.filter(data, {type: e.type}).length
+						}	
+						metas.push(meta)					
+					})
+					callback(metas)
+				})
 			}
 		},
 		mongodb: function(){

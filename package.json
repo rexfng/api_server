@@ -13,11 +13,12 @@
     "aws-sdk": "^2.77.0",
     "body-parser": "^1.17.2",
     "bson-objectid": "^1.1.5",
-    "cookie-parser": "^1.4.3",
+    "delay": "^2.0.0",
     "express": "^4.15.2",
     "express-device": "^0.4.2",
     "express-jwt": "^5.3.0",
     "express-session": "^1.15.3",
+    "express-throttle": "^2.0.0",
     "express-useragent": "^1.0.7",
     "html-pdf": "^2.1.0",
     "joi": "^10.6.0",
@@ -26,21 +27,20 @@
     "mongoose": "^4.9.7",
     "morgan": "^1.8.1",
     "mustache-express": "^1.2.4",
+    "nba.js": "^0.6.0",
     "nodemailer": "^4.0.1",
+    "redis": "^2.8.0",
     "request": "^2.81.0",
     "request-promise": "^4.2.1",
     "s3": "^4.4.0",
-    "socket.io-client": "^2.0.1",
-    "twilio": "^3.3.0",
-    "uid-safe": "^2.1.4",
-    "ws": "^3.0.0"
+    "twilio": "^3.3.0"
   },
   "devDependencies": {
     "mocha": "^3.3.0",
     "nodemon": "^1.11.0"
   },
   "scripts": {
-    "start": "node app",
+    "start": "nodemon app",
     "test": "mocha ./test",
     "api": "apidoc -i ./apidoc ./doc"
   },

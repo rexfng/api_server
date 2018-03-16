@@ -23,7 +23,8 @@
 	"api":{
 		"aws":{
 			"aws_accessKeyId" : "ADSFADFADSFASDFASDF",
-			"aws_secretAccessKey" : "ADSFADSFASDFASDFASDFASDFASDFASDFASDFASDF/"
+			"aws_secretAccessKey" : "ADSFADSFASDFASDFASDFASDFASDFASDFASDFASDF/",
+			"bucket": "bucket-name"
 		},
 		"twilio":{
 			"twilio_accountSid" : "ASDFASDFASDFASDFASDFASDFASDFASDFAS",
