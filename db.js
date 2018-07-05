@@ -416,9 +416,11 @@ const DB = {
 					for (key in json){
 						keys.push(key);
 					}
+					//finding all meta that under the same id
 					Meta.find({data_id: id}, function(err, data){
 						_.each(data, function(item){
-							if (item.value[0] !== json[item.key]) {
+							//if old key and if value is different
+							if(_.includes(keys, item.key[0]) && item.value[0] !== json[item.key]){
 								Meta.remove({id: item._id}, function(err, done){
 									new Meta({
 										key : item.key,
@@ -428,7 +430,18 @@ const DB = {
 										// console.log("updated " + item.value[0] + " to " + json[item.key])
 										callback({status: "updated"})
 									})
-								})
+								})	
+							}else{							
+								//if new key, add meta
+								for (key in json){
+									new Meta({
+										key : key,
+										value : json[key],
+										data_id : id
+									}).save(function(){
+										callback({status: "updated"})
+									})										
+								}
 							}
 						})
 					})
