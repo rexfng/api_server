@@ -20,6 +20,11 @@
 			"data_table_name" : "prefix-data"
 		}
 	},
+	"redis":{
+		"host": "redis.cloud.redislabs.com",
+		"port": 19324,
+		"auth_pass": "replacewithpassword"
+	},
 	"api":{
 		"aws":{
 			"aws_accessKeyId" : "ADSFADFADSFASDFASDF",

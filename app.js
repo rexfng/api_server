@@ -21,7 +21,7 @@ const assert = require('assert-callback');
 const logger = require('morgan');
 const _ = require('lodash');
 const DB = require('./db').DB;
-var which_DB = process.env.which_DB || config.db.which_DB;
+const which_DB = process.env.which_DB || config.db.which_DB;
 if (which_DB == "mongodb") {
 	var dbQuery = new DB.query.mongodb;
 }else if (which_DB == "dynamodb") {
@@ -63,20 +63,26 @@ if (is_jwk == 'true') {
 }else{
 	console.log('jwkCheck is disable, api endpoint is not secured');
 }
-
+const redisLab = process.env.redisLab || config.redis;
 const redis = require('redis'),
-	  cache = 	redis.createClient()
+	  cache = 	redis.createClient({
+	  	host: redisLab.host,
+	  	port: redisLab.port,
+        no_ready_check: true,
+        auth_pass: redisLab.auth_pass,  
+	  })
 	cache.on("error", function(err) {
 	  console.log("Error " + err);
 	})
 
 var redisDel = function(arr){
+	console.log(arr)
 	_.each(arr, function(str){
 		cache.get(str, function(err, getResponse){
 			if(!_.isEmpty(getResponse)){
 				cache.del(str, function(err, response) {
 				   if (response == 1) {
-				      console.log("Deleted " + str  + "from Redis Successfully!")
+				      console.log("Deleted " + str  + " from Redis Successfully!")
 				   } else{
 				    console.log("Cannot delete " + str + " from redis")
 				   }
@@ -88,7 +94,7 @@ var redisDel = function(arr){
 
 app.get('/api/v1/_meta', throttle({ "rate": "300/s" }), function(req,res){
 	dbQuery.listCollections(function(data){
-		res.status(200).send(data).end()
+		res.status(200).send(data)
 	})
 })
 app.post('/api/v1/_s3signature', throttle({ "rate": "300/s" }), function(req,res){
@@ -123,6 +129,7 @@ app.post('/api/v1/_s3signature', throttle({ "rate": "300/s" }), function(req,res
 })
 
 app.get('/api/v1/:type', throttle({ "rate": "300/s" }), function(req,res){
+	console.log(req.query)
 	var query = _.omit(req.query, ['_expect', '_limit', '_page', '_sortorder', '_sortby', '_sortas'])
 	var ttl = _.isEmpty(req.get('X-REDIS-TTL')) ? 86400 : parseInt(req.get('X-REDIS-TTL'))
 
@@ -177,7 +184,6 @@ app.get('/api/v1/:type', throttle({ "rate": "300/s" }), function(req,res){
 			dbQuery.readAll(req.params.type, function(data){
 				cache.set(req.params.type,JSON.stringify(data), 'EX', ttl)
 				queryFilter(data, function(filteredData){
-					console.log(filteredData)
 					res.status(200).send(filteredData);				
 				})
 			}, query);
@@ -195,7 +201,7 @@ app.get('/api/v1/:type/:id', throttle({ "rate": "300/s" }), function(req,res){
 					res.status(504).end()
 				}else{
 					cache.set(req.params.id,JSON.stringify(readData), "EX", ttl)
-					res.status(200).send(readData).end();		
+					res.status(200).send(readData);		
 				}		
 			});	
 		}
@@ -244,14 +250,18 @@ app.post('/api/v1/sms', function(req, res){
 })
 app.post('/api/v1/:type', throttle({ "rate": "100/s" }), function(req, res){
 	redisDel([req.params.type])
-	dbQuery.create(req.params.type, req.body, function(dataCreated){
-		res.status(201).end()
+	dbQuery.create(req.params.type, req.body, function(dataCreated, id){
+		if(dataCreated){
+			console.log(id)
+			res.status(201).end()		
+		}
 	});
 })
 app.post('/api/v1/:type/:id', throttle({ "rate": "100/s" }), function(req,res){
 	redisDel([req.params.type, req.params.id])
-	dbQuery.update(req.params.id, req.body);
-	res.status(201).end()
+	dbQuery.update(req.params.id, req.params.type, req.body, function(message){
+		res.status(201).end();
+	});
 });
 
 
