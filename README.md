@@ -1,10 +1,13 @@
 *mongodb's function is not up to date. Use dynamodb for now.
 
 # Introduction
-The repo has 2 major purpose. 1) it works as a RESTful endpoint powered by node and express serving either [mongodb](https://mlab.com/) (mongoose) or [aws dynamodb](https://aws.amazon.com/dynamodb/). 2) perform server sides duty such as sending email/sms, hosting websocket connection, and generate server-side cookie-session. For more detail please see api [documentation](https://reach-api-server.herokuapp.com/) from root of the project.
+The project provides a RESTful wrapper for mongo database with dynamic schema.
 
 ## Securing the Endpoint
 To secure the endpoint, set `is_jwk` to true and apply credentials from [Auth0](https://auth0.com/) or other similar services/
+
+## Setup Environment
+I recommend mlab for mongo hosting, and redis labs for redis setup
 
 ## Setup Instructions
 1. rename `env/_config.json` to `env/{environment}.json` or setup the following environment variables. development.json is used by default
@@ -32,12 +35,10 @@ To secure the endpoint, set `is_jwk` to true and apply credentials from [Auth0](
 4. `nodemon app`
 
 ### To-Do
-1. Mongodb's dbquery function is not up-to-date to dynamodb, use dynamodb for now.
-2. a separate project to create a cms that utilizes this repo
+1. Dynamodb UPDATE function needs update for now.
 
 ### Discussion
-1. rethink about auth endpoint, maybe use jwt or other security mechnaism instead.
-2. without the websocket service, this repo can be stateless which makes this project very scalable. For serious project, you might want to consider host websocket elsewhere. For small project it's convenient to keep websocket here.
 
 ### Dev Log
+1.0.1 Removed Auth, Graph, S3, Socket functions to keep this strictly for database wrapper. I encourage using firebase or cognito for auth. 
 1.0.0 Create basic functionality for the api_server endpoint
