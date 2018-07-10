@@ -10,35 +10,13 @@
 		}	
 	},
 	"db":{
-		"which_DB": "mongodb",
 		"mongodb":{
 			"database_url" : "mongodb://user:password@ds133321.mlab.com:33321/"
-		},
-		"dynamodb":{
-			"aws_dynamodb_region" : "us-west-2",
-			"meta_table_name" : "prefix-meta",
-			"data_table_name" : "prefix-data"
 		}
 	},
 	"redis":{
 		"host": "redis.cloud.redislabs.com",
 		"port": 19324,
 		"auth_pass": "replacewithpassword"
-	},
-	"api":{
-		"aws":{
-			"aws_accessKeyId" : "ADSFADFADSFASDFASDF",
-			"aws_secretAccessKey" : "ADSFADSFASDFASDFASDFASDFASDFASDFASDFASDF/",
-			"bucket": "bucket-name"
-		},
-		"twilio":{
-			"twilio_accountSid" : "ASDFASDFASDFASDFASDFASDFASDFASDFAS",
-			"twilio_authToken" : "ASDFADSFASDFASDFASDFASDF",
-			"twilio_number" : "+17781234567"
-		},
-		"mailer":{
-			"mailer_user" : "example@gmail.com",
-			"mailer_pass" : "password"
-		}
 	}
 }
